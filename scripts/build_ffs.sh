@@ -148,6 +148,8 @@ build_with_host_edk2() {
   export WORKSPACE="$EDK2_DIR"
   export PACKAGES_PATH="$REPO_DIR:$EDK2_DIR${PACKAGES_PATH:+:$PACKAGES_PATH}"
   export PYTHON_COMMAND="${PYTHON_COMMAND:-python3}"
+  export EDK_TOOLS_PATH="$EDK2_DIR/BaseTools"
+
 
   source_edksetup "$EDK2_DIR/edksetup.sh"
 
