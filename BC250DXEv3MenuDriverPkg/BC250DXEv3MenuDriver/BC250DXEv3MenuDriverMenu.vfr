@@ -1,0 +1,120 @@
+#include <Uefi/UefiMultiPhase.h>
+#include "BC250DXEv3MenuDriver.h"
+
+#define MENU_FORMSET_GUID  { 0xB38377E3, 0x42C0, 0x4A6F, { 0x94, 0xE8, 0x4B, 0xDF, 0x62, 0x35, 0x9F, 0xC9 } }
+#define MENU_CONFIG_GUID   { 0x49CC168D, 0xE8B0, 0x4613, { 0xA8, 0x07, 0x16, 0x96, 0x99, 0x86, 0x72, 0x6F } }
+
+formset
+  guid      = MENU_FORMSET_GUID,
+  title     = STRING_TOKEN(STR_FORM_TITLE),
+  help      = STRING_TOKEN(STR_FORM_HELP),
+  classguid = { 0x93039971, 0x8545, 0x4b04, { 0xb4, 0x5e, 0x32, 0xeb, 0x83, 0x26, 0x04, 0x0e } },
+  class     = 4,
+  subclass  = 0,
+
+  efivarstore MENU_CONFIG,
+    attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+    name      = MeiMeiDXEv3ConfigVar,
+    guid      = MENU_CONFIG_GUID;
+
+  form formid = 1,
+    title = STRING_TOKEN(STR_FORM_TITLE);
+
+    // Patch options
+      subtitle
+      text         = STRING_TOKEN(STR_SUBTITLE_PATCH_TEXT),
+      flags        = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.AcpiPatch,
+        prompt       = STRING_TOKEN(STR_ACPI_PATCH_PROMPT),
+        help         = STRING_TOKEN(STR_ACPI_PATCH_HELP),
+        flags        = 0,
+      endcheckbox;
+
+    // SMU options
+      subtitle
+      text         = STRING_TOKEN(STR_SUBTITLE_SMU_TEXT),
+      flags        = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.SmuUnlock,
+        prompt       = STRING_TOKEN(STR_SMU_UNLOCK_PROMPT),
+        help         = STRING_TOKEN(STR_SMU_UNLOCK_HELP),
+        flags        = 0,
+      endcheckbox;
+
+    // Core options
+      subtitle
+      text         = STRING_TOKEN(STR_SUBTITLE_CORE_TEXT),
+      flags        = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.CoreUnlock,
+        prompt       = STRING_TOKEN(STR_CORE_UNLOCK_PROMPT),
+        help         = STRING_TOKEN(STR_CORE_UNLOCK_HELP),
+        flags        = 0,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.CustomCoreMask,
+        prompt       = STRING_TOKEN(STR_CUSTOM_CORE_MASK_PROMPT),
+        help         = STRING_TOKEN(STR_CUSTOM_CORE_MASK_HELP),
+        flags        = 0,
+      endcheckbox;
+
+    // Individual core toggles
+      subtitle
+      text         = STRING_TOKEN(STR_SUBTITLE_CORES_TEXT),
+      flags        = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.Core0,
+        prompt       = STRING_TOKEN(STR_CORE0_PROMPT),
+        help         = STRING_TOKEN(STR_CORE0_HELP),
+        flags        = 0,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.Core1,
+        prompt       = STRING_TOKEN(STR_CORE1_PROMPT),
+        help         = STRING_TOKEN(STR_CORE1_HELP),
+        flags        = 0,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.Core2,
+        prompt       = STRING_TOKEN(STR_CORE2_PROMPT),
+        help         = STRING_TOKEN(STR_CORE2_HELP),
+        flags        = 0,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.Core3,
+        prompt       = STRING_TOKEN(STR_CORE3_PROMPT),
+        help         = STRING_TOKEN(STR_CORE3_HELP),
+        flags        = 0,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.Core4,
+        prompt       = STRING_TOKEN(STR_CORE4_PROMPT),
+        help         = STRING_TOKEN(STR_CORE4_HELP),
+        flags        = 0,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.Core5,
+        prompt       = STRING_TOKEN(STR_CORE5_PROMPT),
+        help         = STRING_TOKEN(STR_CORE5_HELP),
+        flags        = 0,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.Core6,
+        prompt       = STRING_TOKEN(STR_CORE6_PROMPT),
+        help         = STRING_TOKEN(STR_CORE6_HELP),
+        flags        = 0,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3ConfigVar.Core7,
+        prompt       = STRING_TOKEN(STR_CORE7_PROMPT),
+        help         = STRING_TOKEN(STR_CORE7_HELP),
+        flags        = 0,
+      endcheckbox;
+
+  endform;
+endformset;

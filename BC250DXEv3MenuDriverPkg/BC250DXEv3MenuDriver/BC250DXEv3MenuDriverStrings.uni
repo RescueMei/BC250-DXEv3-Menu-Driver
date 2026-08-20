@@ -1,0 +1,45 @@
+#langdef en-US "English"
+
+#string STR_FORM_TITLE               #language en-US "MeiMeiDXEv3 Menu"
+#string STR_FORM_HELP                #language en-US "Options for the MeiMeiDXEv3 drivers, including ACPI patching, SMU and Core Unlocks, and custom core selection."
+
+#string STR_SUBTITLE_PATCH_TEXT      #language en-US "Patch Options"
+#string STR_SUBTITLE_SMU_TEXT        #language en-US "SMU Options"
+#string STR_SUBTITLE_CORE_TEXT       #language en-US "Core Options"
+#string STR_SUBTITLE_CORES_TEXT      #language en-US "Individual Cores"
+
+#string STR_ACPI_PATCH_PROMPT        #language en-US "ACPI Patch"
+#string STR_ACPI_PATCH_HELP          #language en-US "Enable the ACPI patch."
+
+#string STR_SMU_UNLOCK_PROMPT        #language en-US "SMU Unlock"
+#string STR_SMU_UNLOCK_HELP          #language en-US "Required for all options below."
+
+#string STR_CORE_UNLOCK_PROMPT       #language en-US "Core Unlock"
+#string STR_CORE_UNLOCK_HELP         #language en-US "Unlock additional cores."
+
+#string STR_CUSTOM_CORE_MASK_PROMPT  #language en-US "Custom Core Mask"
+#string STR_CUSTOM_CORE_MASK_HELP    #language en-US "Use the custom core mask settings below."
+
+#string STR_CORE0_PROMPT             #language en-US "Core 0"
+#string STR_CORE0_HELP               #language en-US "Enable Core 0."
+
+#string STR_CORE1_PROMPT             #language en-US "Core 1"
+#string STR_CORE1_HELP               #language en-US "Enable Core 1."
+
+#string STR_CORE2_PROMPT             #language en-US "Core 2"
+#string STR_CORE2_HELP               #language en-US "Enable Core 2."
+
+#string STR_CORE3_PROMPT             #language en-US "Core 3"
+#string STR_CORE3_HELP               #language en-US "Enable Core 3."
+
+#string STR_CORE4_PROMPT             #language en-US "Core 4"
+#string STR_CORE4_HELP               #language en-US "Enable Core 4."
+
+#string STR_CORE5_PROMPT             #language en-US "Core 5"
+#string STR_CORE5_HELP               #language en-US "Enable Core 5."
+
+#string STR_CORE6_PROMPT             #language en-US "Core 6"
+#string STR_CORE6_HELP               #language en-US "Enable Core 6."
+
+#string STR_CORE7_PROMPT             #language en-US "Core 7"
+#string STR_CORE7_HELP               #language en-US "Enable Core 7."

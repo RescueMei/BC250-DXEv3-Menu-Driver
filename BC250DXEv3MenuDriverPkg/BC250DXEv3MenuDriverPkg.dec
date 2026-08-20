@@ -1,0 +1,5 @@
+[Defines]
+  DEC_SPECIFICATION              = 0x0001001A
+  PACKAGE_NAME                   = BC250DXEv3MenuDriver
+  PACKAGE_GUID                   = c8a54dd8-0d07-41fa-8a8d-c4899ee79611
+  PACKAGE_VERSION                = 1.0
