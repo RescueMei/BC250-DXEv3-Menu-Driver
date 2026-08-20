@@ -33,28 +33,28 @@
 #string STR_SUBMENU_CORES_TITLE      #language en-US "Individual Cores"
 
 #string STR_CORE0_PROMPT             #language en-US "Core 0"
-#string STR_CORE0_HELP               #language en-US "Enable Core 0."
+#string STR_CORE0_HELP               #language en-US "Enable Core 0 (CCX0: Cores 0-3). CCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty."
 
 #string STR_CORE1_PROMPT             #language en-US "Core 1"
-#string STR_CORE1_HELP               #language en-US "Enable Core 1."
+#string STR_CORE1_HELP               #language en-US "Enable Core 1 (CCX0: Cores 0-3). CCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty."
 
 #string STR_CORE2_PROMPT             #language en-US "Core 2"
-#string STR_CORE2_HELP               #language en-US "Enable Core 2."
+#string STR_CORE2_HELP               #language en-US "Enable Core 2 (CCX0: Cores 0-3). CCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty."
 
 #string STR_CORE3_PROMPT             #language en-US "Core 3"
-#string STR_CORE3_HELP               #language en-US "Enable Core 3."
+#string STR_CORE3_HELP               #language en-US "Enable Core 3 (CCX0: Cores 0-3). CCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty."
 
 #string STR_CORE4_PROMPT             #language en-US "Core 4"
-#string STR_CORE4_HELP               #language en-US "Enable Core 4."
+#string STR_CORE4_HELP               #language en-US "Enable Core 4 (CCX1: Cores 4-7). CCX1 must have the same number of cores enabled as CCX0 or be empty, and CCX0 must keep at least one core enabled."
 
 #string STR_CORE5_PROMPT             #language en-US "Core 5"
-#string STR_CORE5_HELP               #language en-US "Enable Core 5."
+#string STR_CORE5_HELP               #language en-US "Enable Core 5 (CCX1: Cores 4-7). CCX1 must have the same number of cores enabled as CCX0 or be empty, and CCX0 must keep at least one core enabled."
 
 #string STR_CORE6_PROMPT             #language en-US "Core 6"
-#string STR_CORE6_HELP               #language en-US "Enable Core 6."
+#string STR_CORE6_HELP               #language en-US "Enable Core 6 (CCX1: Cores 4-7). CCX1 must have the same number of cores enabled as CCX0 or be empty, and CCX0 must keep at least one core enabled."
 
 #string STR_CORE7_PROMPT             #language en-US "Core 7"
-#string STR_CORE7_HELP               #language en-US "Enable Core 7."
+#string STR_CORE7_HELP               #language en-US "Enable Core 7 (CCX1: Cores 4-7). CCX1 must have the same number of cores enabled as CCX0 or be empty, and CCX0 must keep at least one core enabled."
 
 #string STR_VALIDATE_CORES_PROMPT        #language en-US "Validate Core Configuration"
 #string STR_VALIDATE_CORES_HELP          #language en-US "Check the selected cores against the CCX0/CCX1 rules used by the core unlock driver: CCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty."

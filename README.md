@@ -6,12 +6,13 @@ The driver's purpose is only to present and store the configuration below. It do
 
 ## Configuration Variables
 
-The menu front-end (VFR) stores settings in three separate non-volatile UEFI variables. All three share the same vendor GUID; they differ only in variable name. Each variable holds a single small struct, so the layout of one feature can evolve independently of the others.
+The menu front-end (VFR) stores settings in four separate non-volatile UEFI variables. All four share the same vendor GUID; they differ only in variable name. Each variable holds a single small struct, so the layout of one feature can evolve independently of the others.
 
 | Variable name | Struct | Size | Contents |
 | --- | --- | --- | --- |
 | `MeiMeiDXEv3AcpiVar` | `ACPI_CONFIG` | 1 byte | `AcpiPatch` |
-| `MeiMeiDXEv3SmuVar` | `SMU_CONFIG` | 2 bytes | `SmuUnlock`, `SmuReportingPatch` |
+| `MeiMeiDXEv3SmuUnlockVar` | `SMU_UNLOCK_CONFIG` | 1 byte | `SmuUnlock` |
+| `MeiMeiDXEv3SmuPatchVar` | `SMU_PATCH_CONFIG` | 1 byte | `SmuReportingPatch` |
 | `MeiMeiDXEv3CoreVar` | `CORE_CONFIG` | 9 bytes | `CoreUnlock`, `Core0`–`Core7` |
 
 Shared properties:
@@ -33,12 +34,17 @@ Every field is a single-byte `UINT8`. Offsets are byte offsets from the start of
 | --- | --- | --- |
 | 0 | `AcpiPatch` | Enable the ACPI patch (`0` = disabled, `1` = enabled). |
 
-### SMU_CONFIG (`MeiMeiDXEv3SmuVar`, 2 bytes)
+### SMU_UNLOCK_CONFIG (`MeiMeiDXEv3SmuUnlockVar`, 1 byte)
 
 | Offset | Field | Description |
 | --- | --- | --- |
-| 0 | `SmuUnlock` | SMU unlock. Required for all options below (`0` = disabled, `1` = enabled). |
-| 1 | `SmuReportingPatch` | Patches the SMU for 8-core reporting (`0` = disabled, `1` = enabled). |
+| 0 | `SmuUnlock` | SMU unlock. Required for the SMU reporting patch and the core options below (`0` = disabled, `1` = enabled). |
+
+### SMU_PATCH_CONFIG (`MeiMeiDXEv3SmuPatchVar`, 1 byte)
+
+| Offset | Field | Description |
+| --- | --- | --- |
+| 0 | `SmuReportingPatch` | Patches the SMU for 8-core reporting (`0` = disabled, `1` = enabled). |
 
 ### CORE_CONFIG (`MeiMeiDXEv3CoreVar`, 9 bytes)
 
@@ -73,8 +79,11 @@ typedef struct {
 
 typedef struct {
   UINT8  SmuUnlock;
+} SMU_UNLOCK_CONFIG;
+
+typedef struct {
   UINT8  SmuReportingPatch;
-} SMU_CONFIG;
+} SMU_PATCH_CONFIG;
 
 typedef struct {
   UINT8  CoreUnlock;
@@ -101,7 +110,7 @@ Include the header (or copy the structs/GUID into your driver) and read the vari
 #include <Uefi.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
-#include "BC250DXEv3MenuDriver.h"   // defines ACPI_CONFIG, SMU_CONFIG, CORE_CONFIG
+#include "BC250DXEv3MenuDriver.h"   // defines ACPI_CONFIG, SMU_UNLOCK_CONFIG, SMU_PATCH_CONFIG, CORE_CONFIG
 #include "Guid/MeiMeiDXEv3ConfigVar.h"  // defines gMeiMeiDXEv3ConfigVarGuid (see below)
 
 EFI_STATUS
@@ -138,9 +147,10 @@ ReadCoreConfig (
 Usage:
 
 ```c
-  CORE_CONFIG  CoreConfig;
-  ACPI_CONFIG  AcpiConfig;
-  SMU_CONFIG   SmuConfig;
+  CORE_CONFIG         CoreConfig;
+  ACPI_CONFIG         AcpiConfig;
+  SMU_UNLOCK_CONFIG   SmuUnlockConfig;
+  SMU_PATCH_CONFIG    SmuPatchConfig;
 
   if (!EFI_ERROR (ReadCoreConfig (&CoreConfig))) {
     if (CoreConfig.CoreUnlock == CORE_UNLOCK_CUSTOM) {
@@ -156,18 +166,30 @@ Usage:
 Set the same attributes the menu driver uses, so the HII form can still see and edit the values:
 
 ```c
-  SMU_CONFIG   SmuConfig;
-  CORE_CONFIG  CoreConfig;
+  SMU_UNLOCK_CONFIG  SmuUnlockConfig;
+  SMU_PATCH_CONFIG   SmuPatchConfig;
+  CORE_CONFIG        CoreConfig;
 
-  SmuConfig.SmuUnlock = 1;
+  SmuUnlockConfig.SmuUnlock = 1;
   Status = gRT->SetVariable (
-                  L"MeiMeiDXEv3SmuVar",
+                  L"MeiMeiDXEv3SmuUnlockVar",
                   &gMeiMeiDXEv3ConfigVarGuid,
                   EFI_VARIABLE_BOOTSERVICE_ACCESS |
                   EFI_VARIABLE_RUNTIME_ACCESS     |
                   EFI_VARIABLE_NON_VOLATILE,
-                  sizeof (SMU_CONFIG),
-                  &SmuConfig
+                  sizeof (SMU_UNLOCK_CONFIG),
+                  &SmuUnlockConfig
+                  );
+
+  SmuPatchConfig.SmuReportingPatch = 1;
+  Status = gRT->SetVariable (
+                  L"MeiMeiDXEv3SmuPatchVar",
+                  &gMeiMeiDXEv3ConfigVarGuid,
+                  EFI_VARIABLE_BOOTSERVICE_ACCESS |
+                  EFI_VARIABLE_RUNTIME_ACCESS     |
+                  EFI_VARIABLE_NON_VOLATILE,
+                  sizeof (SMU_PATCH_CONFIG),
+                  &SmuPatchConfig
                   );
 
   CoreConfig.CoreUnlock = CORE_UNLOCK_CUSTOM;
@@ -197,7 +219,7 @@ Alternatively, if you cannot use the structs, access the fields by raw byte offs
 ## Notes
 
 - Each variable is non-volatile and persists across reboots; it is only created (and defaulted) if it does not exist when the menu driver first runs.
-- The three variables share one vendor GUID but differ by name, letting each feature's layout evolve without affecting the others.
+- The four variables share one vendor GUID but differ by name, letting each feature's layout evolve without affecting the others.
 - The menu driver only stores the configuration — apply/decode the options in your own driver where appropriate.
 - The Individual Core Options submenu contains a "Validate Core Configuration" action button (an `EFI_IFR_ACTION`, not a stored setting). It checks the currently selected per-core mask against the CCX0/CCX1 rules: CCX0 must keep at least one core enabled, and CCX1 must have the same number of enabled cores as CCX0 or be empty. PASS/FAIL is shown in a native popup; on FAIL, selecting Yes resets the toggles to the learned factory core mask (read through `gMeiMeiDXEv3CoreUnlockProtocolGuid` / `GetFactoryMask`, produced by the BC-250 DXEv3 Core Unlock driver). If that driver is absent, or the factory mask has not been learned yet, an informational popup is shown and nothing is reset.
 - The same submenu also has a "Restore Factory Core Mask" action button. It asks for confirmation and, on Yes, resets the currently selected Core0-Core7 toggles to the learned factory core mask (same protocol lookup and graceful error popups as above).

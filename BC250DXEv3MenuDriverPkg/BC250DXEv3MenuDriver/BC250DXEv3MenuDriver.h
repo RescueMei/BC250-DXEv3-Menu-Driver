@@ -38,12 +38,15 @@ typedef struct {
 } ACPI_CONFIG;
 
 //
-// SMU configuration variable
+// SMU configuration variables (one per SMU driver)
 //
 typedef struct {
   UINT8  SmuUnlock;
+} SMU_UNLOCK_CONFIG;
+
+typedef struct {
   UINT8  SmuReportingPatch;
-} SMU_CONFIG;
+} SMU_PATCH_CONFIG;
 
 //
 // Core configuration variable

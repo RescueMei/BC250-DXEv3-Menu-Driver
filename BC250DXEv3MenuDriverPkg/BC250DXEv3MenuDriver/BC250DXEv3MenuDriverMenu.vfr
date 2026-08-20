@@ -17,9 +17,14 @@ formset
     name      = MeiMeiDXEv3AcpiVar,
     guid      = MENU_CONFIG_GUID;
 
-  efivarstore SMU_CONFIG,
+  efivarstore SMU_UNLOCK_CONFIG,
     attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
-    name      = MeiMeiDXEv3SmuVar,
+    name      = MeiMeiDXEv3SmuUnlockVar,
+    guid      = MENU_CONFIG_GUID;
+
+  efivarstore SMU_PATCH_CONFIG,
+    attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+    name      = MeiMeiDXEv3SmuPatchVar,
     guid      = MENU_CONFIG_GUID;
 
   efivarstore CORE_CONFIG,
@@ -56,14 +61,14 @@ formset
         help = STRING_TOKEN(STR_EMPTY),
         text = STRING_TOKEN(STR_EMPTY);
 
-      checkbox varid = MeiMeiDXEv3SmuVar.SmuUnlock,
+      checkbox varid = MeiMeiDXEv3SmuUnlockVar.SmuUnlock,
         prompt       = STRING_TOKEN(STR_SMU_UNLOCK_PROMPT),
         help         = STRING_TOKEN(STR_SMU_UNLOCK_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
-      grayoutif NOT ideqval MeiMeiDXEv3SmuVar.SmuUnlock == 1;
-        checkbox varid = MeiMeiDXEv3SmuVar.SmuReportingPatch,
+      grayoutif NOT ideqval MeiMeiDXEv3SmuUnlockVar.SmuUnlock == 1;
+        checkbox varid = MeiMeiDXEv3SmuPatchVar.SmuReportingPatch,
           prompt       = STRING_TOKEN(STR_SMU_REPORTING_PATCH_PROMPT),
           help         = STRING_TOKEN(STR_SMU_REPORTING_PATCH_HELP),
           flags        = RESET_REQUIRED,
@@ -80,7 +85,7 @@ formset
         help = STRING_TOKEN(STR_EMPTY),
         text = STRING_TOKEN(STR_EMPTY);
 
-      grayoutif NOT ideqval MeiMeiDXEv3SmuVar.SmuUnlock == 1;
+      grayoutif NOT ideqval MeiMeiDXEv3SmuUnlockVar.SmuUnlock == 1;
         oneof varid = MeiMeiDXEv3CoreVar.CoreUnlock,
           prompt       = STRING_TOKEN(STR_CORE_UNLOCK_PROMPT),
           help         = STRING_TOKEN(STR_CORE_UNLOCK_HELP),

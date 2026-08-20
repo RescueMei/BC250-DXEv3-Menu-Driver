@@ -522,9 +522,12 @@ ExtractConfig (
     if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3AcpiVar")) {
       VarName    = L"MeiMeiDXEv3AcpiVar";
       BufferSize = sizeof (ACPI_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3SmuVar")) {
-      VarName    = L"MeiMeiDXEv3SmuVar";
-      BufferSize = sizeof (SMU_CONFIG);
+    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3SmuUnlockVar")) {
+      VarName    = L"MeiMeiDXEv3SmuUnlockVar";
+      BufferSize = sizeof (SMU_UNLOCK_CONFIG);
+    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3SmuPatchVar")) {
+      VarName    = L"MeiMeiDXEv3SmuPatchVar";
+      BufferSize = sizeof (SMU_PATCH_CONFIG);
     } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3CoreVar")) {
       VarName    = L"MeiMeiDXEv3CoreVar";
       BufferSize = sizeof (CORE_CONFIG);
@@ -616,9 +619,12 @@ RouteConfig (
   if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3AcpiVar")) {
     VarName    = L"MeiMeiDXEv3AcpiVar";
     BufferSize = sizeof (ACPI_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3SmuVar")) {
-    VarName    = L"MeiMeiDXEv3SmuVar";
-    BufferSize = sizeof (SMU_CONFIG);
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3SmuUnlockVar")) {
+    VarName    = L"MeiMeiDXEv3SmuUnlockVar";
+    BufferSize = sizeof (SMU_UNLOCK_CONFIG);
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3SmuPatchVar")) {
+    VarName    = L"MeiMeiDXEv3SmuPatchVar";
+    BufferSize = sizeof (SMU_PATCH_CONFIG);
   } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3CoreVar")) {
     VarName    = L"MeiMeiDXEv3CoreVar";
     BufferSize = sizeof (CORE_CONFIG);
@@ -686,9 +692,10 @@ Bc250DxeV3MenuDriverEntryPoint (
   )
 {
   EFI_STATUS   Status;
-  ACPI_CONFIG  AcpiConfig;
-  SMU_CONFIG   SmuConfig;
-  CORE_CONFIG  CoreConfig;
+  ACPI_CONFIG         AcpiConfig;
+  SMU_UNLOCK_CONFIG   SmuUnlockConfig;
+  SMU_PATCH_CONFIG    SmuPatchConfig;
+  CORE_CONFIG         CoreConfig;
   EFI_GUID     HiiGuid = gEfiCallerIdGuid;
 
   // Workaround to avoid problems with LTO in the compiler
@@ -703,10 +710,16 @@ Bc250DxeV3MenuDriverEntryPoint (
     return Status;
   }
 
-  // Initialize the SMU configuration variable if it does not exist
-  SmuConfig.SmuUnlock = 0;
-  SmuConfig.SmuReportingPatch = 0;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3SmuVar", &gMenuConfigGuid, &SmuConfig, sizeof (SMU_CONFIG));
+  // Initialize the SMU unlock configuration variable if it does not exist
+  SmuUnlockConfig.SmuUnlock = 0;
+  Status = InitVariableIfMissing (L"MeiMeiDXEv3SmuUnlockVar", &gMenuConfigGuid, &SmuUnlockConfig, sizeof (SMU_UNLOCK_CONFIG));
+  if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
+    return Status;
+  }
+
+  // Initialize the SMU patch configuration variable if it does not exist
+  SmuPatchConfig.SmuReportingPatch = 0;
+  Status = InitVariableIfMissing (L"MeiMeiDXEv3SmuPatchVar", &gMenuConfigGuid, &SmuPatchConfig, sizeof (SMU_PATCH_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
