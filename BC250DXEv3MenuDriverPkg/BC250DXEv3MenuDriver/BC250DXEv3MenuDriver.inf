@@ -1,6 +1,6 @@
 [Defines]
   INF_VERSION                    = 0x00010005
-  BASE_NAME                      = BC250DXEv3MenuDriver
+  BASE_NAME                      = MeiMeiDXEv3MenuDriver
   FILE_GUID                      = 0ddde9e4-4a0c-4679-bedc-90a37610ab85
   MODULE_TYPE                    = DXE_DRIVER
   VERSION_STRING                 = 1.0

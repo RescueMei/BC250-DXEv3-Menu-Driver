@@ -3,10 +3,11 @@
 #string STR_FORM_TITLE               #language en-US "MeiMeiDXEv3 Menu"
 #string STR_FORM_HELP                #language en-US "Options for the MeiMeiDXEv3 drivers, including ACPI patching, SMU and Core Unlocks, and custom core selection."
 
+#string STR_EMPTY                    #language en-US ""
+
 #string STR_SUBTITLE_PATCH_TEXT      #language en-US "Patch Options"
 #string STR_SUBTITLE_SMU_TEXT        #language en-US "SMU Options"
 #string STR_SUBTITLE_CORE_TEXT       #language en-US "Core Options"
-#string STR_SUBTITLE_CORES_TEXT      #language en-US "Individual Cores"
 
 #string STR_ACPI_PATCH_PROMPT        #language en-US "ACPI Patch"
 #string STR_ACPI_PATCH_HELP          #language en-US "Enable the ACPI patch."
@@ -14,11 +15,22 @@
 #string STR_SMU_UNLOCK_PROMPT        #language en-US "SMU Unlock"
 #string STR_SMU_UNLOCK_HELP          #language en-US "Required for all options below."
 
-#string STR_CORE_UNLOCK_PROMPT       #language en-US "Core Unlock"
-#string STR_CORE_UNLOCK_HELP         #language en-US "Unlock additional cores."
+#string STR_SMU_REPORTING_PATCH_PROMPT #language en-US "SMU Reporting Patch"
+#string STR_SMU_REPORTING_PATCH_HELP   #language en-US "Patches SMU for 8 Core Reporting"
 
-#string STR_CUSTOM_CORE_MASK_PROMPT  #language en-US "Custom Core Mask"
-#string STR_CUSTOM_CORE_MASK_HELP    #language en-US "Use the custom core mask settings below."
+#string STR_CORE_UNLOCK_PROMPT       #language en-US "Core Unlock"
+#string STR_CORE_UNLOCK_HELP         #language en-US "Disabled - Disable the core unlock and use the factory core mask. Enabled - Enable the unlock for all cores. Custom = Enable using cores set in Individual Core Options."
+
+#string STR_CORE_UNLOCK_DISABLED     #language en-US "Disabled"
+#string STR_CORE_UNLOCK_ALL_CORES    #language en-US "All Cores"
+#string STR_CORE_UNLOCK_CUSTOM       #language en-US "Custom"
+
+#string STR_CORES_GOTO_PROMPT        #language en-US "Individual Core Options"
+#string STR_CORES_GOTO_HELP          #language en-US "Enable or disable individual cores. Only available in Custom mode."
+#string STR_SUBTITLE_CCX0_TEXT       #language en-US "CCX0"
+#string STR_SUBTITLE_CCX1_TEXT       #language en-US "CCX1"
+
+#string STR_SUBMENU_CORES_TITLE      #language en-US "Individual Cores"
 
 #string STR_CORE0_PROMPT             #language en-US "Core 0"
 #string STR_CORE0_HELP               #language en-US "Enable Core 0."

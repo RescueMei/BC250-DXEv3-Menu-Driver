@@ -12,9 +12,19 @@ formset
   class     = 4,
   subclass  = 0,
 
-  efivarstore MENU_CONFIG,
+  efivarstore ACPI_CONFIG,
     attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
-    name      = MeiMeiDXEv3ConfigVar,
+    name      = MeiMeiDXEv3AcpiVar,
+    guid      = MENU_CONFIG_GUID;
+
+  efivarstore SMU_CONFIG,
+    attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+    name      = MeiMeiDXEv3SmuVar,
+    guid      = MENU_CONFIG_GUID;
+
+  efivarstore CORE_CONFIG,
+    attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+    name      = MeiMeiDXEv3CoreVar,
     guid      = MENU_CONFIG_GUID;
 
   form formid = 1,
@@ -26,10 +36,14 @@ formset
       flags        = 0,
     endsubtitle;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.AcpiPatch,
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
+      checkbox varid = MeiMeiDXEv3AcpiVar.AcpiPatch,
         prompt       = STRING_TOKEN(STR_ACPI_PATCH_PROMPT),
         help         = STRING_TOKEN(STR_ACPI_PATCH_HELP),
-        flags        = 0,
+        flags        = RESET_REQUIRED,
       endcheckbox;
 
     // SMU options
@@ -38,11 +52,23 @@ formset
       flags        = 0,
     endsubtitle;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.SmuUnlock,
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
+      checkbox varid = MeiMeiDXEv3SmuVar.SmuUnlock,
         prompt       = STRING_TOKEN(STR_SMU_UNLOCK_PROMPT),
         help         = STRING_TOKEN(STR_SMU_UNLOCK_HELP),
-        flags        = 0,
+        flags        = RESET_REQUIRED,
       endcheckbox;
+
+      grayoutif NOT ideqval MeiMeiDXEv3SmuVar.SmuUnlock == 1;
+        checkbox varid = MeiMeiDXEv3SmuVar.SmuReportingPatch,
+          prompt       = STRING_TOKEN(STR_SMU_REPORTING_PATCH_PROMPT),
+          help         = STRING_TOKEN(STR_SMU_REPORTING_PATCH_HELP),
+          flags        = RESET_REQUIRED,
+        endcheckbox;
+      endif;
 
     // Core options
       subtitle
@@ -50,70 +76,100 @@ formset
       flags        = 0,
     endsubtitle;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.CoreUnlock,
-        prompt       = STRING_TOKEN(STR_CORE_UNLOCK_PROMPT),
-        help         = STRING_TOKEN(STR_CORE_UNLOCK_HELP),
-        flags        = 0,
-      endcheckbox;
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.CustomCoreMask,
-        prompt       = STRING_TOKEN(STR_CUSTOM_CORE_MASK_PROMPT),
-        help         = STRING_TOKEN(STR_CUSTOM_CORE_MASK_HELP),
-        flags        = 0,
-      endcheckbox;
+      grayoutif NOT ideqval MeiMeiDXEv3SmuVar.SmuUnlock == 1;
+        oneof varid = MeiMeiDXEv3CoreVar.CoreUnlock,
+          prompt       = STRING_TOKEN(STR_CORE_UNLOCK_PROMPT),
+          help         = STRING_TOKEN(STR_CORE_UNLOCK_HELP),
+          flags        = RESET_REQUIRED,
+          option text = STRING_TOKEN(STR_CORE_UNLOCK_DISABLED),  value = CORE_UNLOCK_DISABLED,  flags = 0;
+          option text = STRING_TOKEN(STR_CORE_UNLOCK_ALL_CORES), value = CORE_UNLOCK_ALL_CORES, flags = 0;
+          option text = STRING_TOKEN(STR_CORE_UNLOCK_CUSTOM),   value = CORE_UNLOCK_CUSTOM,   flags = 0;
+        endoneof;
+      endif;
 
-    // Individual core toggles
+    // Individual core toggles submenu (only enabled in Custom mode)
+      grayoutif NOT ideqval MeiMeiDXEv3CoreVar.CoreUnlock == CORE_UNLOCK_CUSTOM;
+        goto 2,
+          prompt = STRING_TOKEN(STR_CORES_GOTO_PROMPT),
+          help   = STRING_TOKEN(STR_CORES_GOTO_HELP);
+      endif;
+
+  endform;
+
+  // Submenu: Individual core toggles
+  form formid = 2,
+    title = STRING_TOKEN(STR_SUBMENU_CORES_TITLE);
+
+    // CCX0: Cores 0-3
       subtitle
-      text         = STRING_TOKEN(STR_SUBTITLE_CORES_TEXT),
+      text         = STRING_TOKEN(STR_SUBTITLE_CCX0_TEXT),
       flags        = 0,
     endsubtitle;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.Core0,
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
+      checkbox varid = MeiMeiDXEv3CoreVar.Core0,
         prompt       = STRING_TOKEN(STR_CORE0_PROMPT),
         help         = STRING_TOKEN(STR_CORE0_HELP),
-        flags        = 0,
+        flags        = RESET_REQUIRED,
       endcheckbox;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.Core1,
+      checkbox varid = MeiMeiDXEv3CoreVar.Core1,
         prompt       = STRING_TOKEN(STR_CORE1_PROMPT),
         help         = STRING_TOKEN(STR_CORE1_HELP),
-        flags        = 0,
+        flags        = RESET_REQUIRED,
       endcheckbox;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.Core2,
+      checkbox varid = MeiMeiDXEv3CoreVar.Core2,
         prompt       = STRING_TOKEN(STR_CORE2_PROMPT),
         help         = STRING_TOKEN(STR_CORE2_HELP),
-        flags        = 0,
+        flags        = RESET_REQUIRED,
       endcheckbox;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.Core3,
+      checkbox varid = MeiMeiDXEv3CoreVar.Core3,
         prompt       = STRING_TOKEN(STR_CORE3_PROMPT),
         help         = STRING_TOKEN(STR_CORE3_HELP),
-        flags        = 0,
+        flags        = RESET_REQUIRED,
       endcheckbox;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.Core4,
+    // CCX1: Cores 4-7
+      subtitle
+      text         = STRING_TOKEN(STR_SUBTITLE_CCX1_TEXT),
+      flags        = 0,
+    endsubtitle;
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
+      checkbox varid = MeiMeiDXEv3CoreVar.Core4,
         prompt       = STRING_TOKEN(STR_CORE4_PROMPT),
         help         = STRING_TOKEN(STR_CORE4_HELP),
-        flags        = 0,
+        flags        = RESET_REQUIRED,
       endcheckbox;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.Core5,
+      checkbox varid = MeiMeiDXEv3CoreVar.Core5,
         prompt       = STRING_TOKEN(STR_CORE5_PROMPT),
         help         = STRING_TOKEN(STR_CORE5_HELP),
-        flags        = 0,
+        flags        = RESET_REQUIRED,
       endcheckbox;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.Core6,
+      checkbox varid = MeiMeiDXEv3CoreVar.Core6,
         prompt       = STRING_TOKEN(STR_CORE6_PROMPT),
         help         = STRING_TOKEN(STR_CORE6_HELP),
-        flags        = 0,
+        flags        = RESET_REQUIRED,
       endcheckbox;
 
-      checkbox varid = MeiMeiDXEv3ConfigVar.Core7,
+      checkbox varid = MeiMeiDXEv3CoreVar.Core7,
         prompt       = STRING_TOKEN(STR_CORE7_PROMPT),
         help         = STRING_TOKEN(STR_CORE7_HELP),
-        flags        = 0,
+        flags        = RESET_REQUIRED,
       endcheckbox;
 
   endform;

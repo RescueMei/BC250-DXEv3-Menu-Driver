@@ -2,48 +2,82 @@
 
 Driver for my v3 bios to add options that will not interfere with existing options in the BIOS. It registers an HII formset that exposes a set of options in the BIOS setup menu for the MeiMeiDXEv3 family of drivers (ACPI patching, SMU unlock, core unlock, and per-core selection).
 
-The driver's purpose is only to present and store the configuration below. It does not apply the options itself; other drivers should read this variable and act on it.
+The driver's purpose is only to present and store the configuration below. It does not apply the options itself; other drivers should read the variables and act on them.
 
-## Configuration Variable
+## Configuration Variables
 
-The menu front-end (VFR) stores all of its settings in a single UEFI variable:
+The menu front-end (VFR) stores settings in three separate non-volatile UEFI variables. All three share the same vendor GUID; they differ only in variable name. Each variable holds a single small struct, so the layout of one feature can evolve independently of the others.
+
+| Variable name | Struct | Size | Contents |
+| --- | --- | --- | --- |
+| `MeiMeiDXEv3AcpiVar` | `ACPI_CONFIG` | 1 byte | `AcpiPatch` |
+| `MeiMeiDXEv3SmuVar` | `SMU_CONFIG` | 2 bytes | `SmuUnlock`, `SmuReportingPatch` |
+| `MeiMeiDXEv3CoreVar` | `CORE_CONFIG` | 9 bytes | `CoreUnlock`, `Core0`–`Core7` |
+
+Shared properties:
 
 | Item | Value |
 | --- | --- |
-| Variable name | `MeiMeiDXEv3ConfigVar` |
 | Vendor GUID | `49CC168D-E8B0-4613-A807-16969986726F` |
 | Attributes | `EFI_VARIABLE_BOOTSERVICE_ACCESS` \| `EFI_VARIABLE_RUNTIME_ACCESS` \| `EFI_VARIABLE_NON_VOLATILE` |
-| Size | 12 bytes (see table below) |
 
-If the variable does not already exist when the driver starts, it is created and initialized with all fields set to `0`.
+If a variable does not already exist when the driver starts, it is created and initialized with its defaults (`AcpiPatch = 0`, `SmuUnlock = 0`, `SmuReportingPatch = 0`, `CoreUnlock = CORE_UNLOCK_DISABLED`, all cores `0`).
 
-## Variable Contents (MENU_CONFIG)
+## Variable Contents
 
-The variable holds a `MENU_CONFIG` structure. Every field is a single-byte `UINT8` used as a boolean (`0` = disabled, `1` = enabled). Offsets are byte offsets from the start of the variable data:
+Every field is a single-byte `UINT8`. Offsets are byte offsets from the start of that variable's data.
+
+### ACPI_CONFIG (`MeiMeiDXEv3AcpiVar`, 1 byte)
 
 | Offset | Field | Description |
 | --- | --- | --- |
-| 0 | `AcpiPatch` | Enable the ACPI patch. |
-| 1 | `SmuUnlock` | SMU unlock. Required for all options below. |
-| 2 | `CoreUnlock` | Unlock additional cores. |
-| 3 | `CustomCoreMask` | Use the custom core mask settings below. |
-| 4 | `Core0` | Enable Core 0. |
-| 5 | `Core1` | Enable Core 1. |
-| 6 | `Core2` | Enable Core 2. |
-| 7 | `Core3` | Enable Core 3. |
-| 8 | `Core4` | Enable Core 4. |
-| 9 | `Core5` | Enable Core 5. |
-| 10 | `Core6` | Enable Core 6. |
-| 11 | `Core7` | Enable Core 7. |
+| 0 | `AcpiPatch` | Enable the ACPI patch (`0` = disabled, `1` = enabled). |
 
-The canonical definition lives in `BC250DXEv3MenuDriverPkg/BC250DXEv3MenuDriver/BC250DXEv3MenuDriver.h`:
+### SMU_CONFIG (`MeiMeiDXEv3SmuVar`, 2 bytes)
+
+| Offset | Field | Description |
+| --- | --- | --- |
+| 0 | `SmuUnlock` | SMU unlock. Required for all options below (`0` = disabled, `1` = enabled). |
+| 1 | `SmuReportingPatch` | Patches the SMU for 8-core reporting (`0` = disabled, `1` = enabled). |
+
+### CORE_CONFIG (`MeiMeiDXEv3CoreVar`, 9 bytes)
+
+| Offset | Field | Description |
+| --- | --- | --- |
+| 0 | `CoreUnlock` | Core unlock mode. See **CoreUnlock states** below. |
+| 1 | `Core0` | Enable Core 0 (`0` = disabled, `1` = enabled). |
+| 2 | `Core1` | Enable Core 1 (`0` = disabled, `1` = enabled). |
+| 3 | `Core2` | Enable Core 2 (`0` = disabled, `1` = enabled). |
+| 4 | `Core3` | Enable Core 3 (`0` = disabled, `1` = enabled). |
+| 5 | `Core4` | Enable Core 4 (`0` = disabled, `1` = enabled). |
+| 6 | `Core5` | Enable Core 5 (`0` = disabled, `1` = enabled). |
+| 7 | `Core6` | Enable Core 6 (`0` = disabled, `1` = enabled). |
+| 8 | `Core7` | Enable Core 7 (`0` = disabled, `1` = enabled). |
+
+### CoreUnlock states
+
+`CoreUnlock` is a three-state selection in the setup menu:
+
+| Value | Constant | Meaning |
+| --- | --- | --- |
+| 0 | `CORE_UNLOCK_DISABLED` | Disabled (factory settings; core unlock not applied). |
+| 1 | `CORE_UNLOCK_ALL_CORES` | Unlock all cores. |
+| 2 | `CORE_UNLOCK_CUSTOM` | Core unlock is enabled with the per-core selection (`Core0` – `Core7`). The "Individual Core Toggles" submenu is only selectable in this mode. |
+
+The canonical definitions live in `BC250DXEv3MenuDriverPkg/BC250DXEv3MenuDriver/BC250DXEv3MenuDriver.h`:
 
 ```c
 typedef struct {
   UINT8  AcpiPatch;
+} ACPI_CONFIG;
+
+typedef struct {
   UINT8  SmuUnlock;
+  UINT8  SmuReportingPatch;
+} SMU_CONFIG;
+
+typedef struct {
   UINT8  CoreUnlock;
-  UINT8  CustomCoreMask;
   UINT8  Core0;
   UINT8  Core1;
   UINT8  Core2;
@@ -52,34 +86,34 @@ typedef struct {
   UINT8  Core5;
   UINT8  Core6;
   UINT8  Core7;
-} MENU_CONFIG;
+} CORE_CONFIG;
 ```
 
-## Using This Variable From Other Drivers
+## Using These Variables From Other Drivers
 
-Consuming this variable is done with the standard runtime services `GetVariable()` / `SetVariable()` calls. Since the variable has `RUNTIME_ACCESS`, it can be used by any `DXE_DRIVER` (or later stage) and even after `ExitBootServices`.
+Consuming the variables is done with the standard runtime services `GetVariable()` / `SetVariable()` calls. Since the variables have `RUNTIME_ACCESS`, they can be used by any `DXE_DRIVER` (or later stage) and even after `ExitBootServices`.
 
 ### Reading the configuration
 
-Include the header (or copy the struct/GUID into your driver) and read the whole structure in one call:
+Include the header (or copy the structs/GUID into your driver) and read the variable you need in one call:
 
 ```c
 #include <Uefi.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
-#include "BC250DXEv3MenuDriver.h"   // defines MENU_CONFIG
+#include "BC250DXEv3MenuDriver.h"   // defines ACPI_CONFIG, SMU_CONFIG, CORE_CONFIG
 #include "Guid/MeiMeiDXEv3ConfigVar.h"  // defines gMeiMeiDXEv3ConfigVarGuid (see below)
 
 EFI_STATUS
-ReadMenuConfig (
-  OUT MENU_CONFIG  *Config
+ReadCoreConfig (
+  OUT CORE_CONFIG  *Config
   )
 {
-  UINTN       Size = sizeof (MENU_CONFIG);
+  UINTN       Size = sizeof (CORE_CONFIG);
   EFI_STATUS  Status;
 
   Status = gRT->GetVariable (
-                  L"MeiMeiDXEv3ConfigVar",
+                  L"MeiMeiDXEv3CoreVar",
                   &gMeiMeiDXEv3ConfigVarGuid,
                   NULL,
                   &Size,
@@ -92,8 +126,8 @@ ReadMenuConfig (
 
   if (EFI_ERROR (Status)) {
     // EFI_NOT_FOUND or other error: the variable is absent, so the
-    // driver's defaults (all zeros) apply.
-    ZeroMem (Config, sizeof (MENU_CONFIG));
+    // driver's defaults apply.
+    ZeroMem (Config, sizeof (CORE_CONFIG));
     return EFI_SUCCESS;
   }
 
@@ -104,13 +138,15 @@ ReadMenuConfig (
 Usage:
 
 ```c
-  MENU_CONFIG  Config;
-  if (!EFI_ERROR (ReadMenuConfig (&Config))) {
-    if (Config.SmuUnlock != 0) {
-      // SMU unlock is enabled in the menu
-    }
-    if (Config.CustomCoreMask != 0) {
+  CORE_CONFIG  CoreConfig;
+  ACPI_CONFIG  AcpiConfig;
+  SMU_CONFIG   SmuConfig;
+
+  if (!EFI_ERROR (ReadCoreConfig (&CoreConfig))) {
+    if (CoreConfig.CoreUnlock == CORE_UNLOCK_CUSTOM) {
       // Respect the per-core toggles Core0..Core7
+    } else if (CoreConfig.CoreUnlock == CORE_UNLOCK_ALL_CORES) {
+      // Core unlock enabled with the driver's default behavior
     }
   }
 ```
@@ -120,17 +156,30 @@ Usage:
 Set the same attributes the menu driver uses, so the HII form can still see and edit the values:
 
 ```c
-  Config.SmuUnlock = 1;
-  Config.Core0     = 1;
+  SMU_CONFIG   SmuConfig;
+  CORE_CONFIG  CoreConfig;
 
+  SmuConfig.SmuUnlock = 1;
   Status = gRT->SetVariable (
-                  L"MeiMeiDXEv3ConfigVar",
+                  L"MeiMeiDXEv3SmuVar",
                   &gMeiMeiDXEv3ConfigVarGuid,
                   EFI_VARIABLE_BOOTSERVICE_ACCESS |
                   EFI_VARIABLE_RUNTIME_ACCESS     |
                   EFI_VARIABLE_NON_VOLATILE,
-                  sizeof (MENU_CONFIG),
-                  &Config
+                  sizeof (SMU_CONFIG),
+                  &SmuConfig
+                  );
+
+  CoreConfig.CoreUnlock = CORE_UNLOCK_CUSTOM;
+  CoreConfig.Core0      = 1;
+  Status = gRT->SetVariable (
+                  L"MeiMeiDXEv3CoreVar",
+                  &gMeiMeiDXEv3ConfigVarGuid,
+                  EFI_VARIABLE_BOOTSERVICE_ACCESS |
+                  EFI_VARIABLE_RUNTIME_ACCESS     |
+                  EFI_VARIABLE_NON_VOLATILE,
+                  sizeof (CORE_CONFIG),
+                  &CoreConfig
                   );
 ```
 
@@ -143,11 +192,12 @@ EFI_GUID  gMeiMeiDXEv3ConfigVarGuid =
   { 0x49CC168D, 0xE8B0, 0x4613, { 0xA8, 0x07, 0x16, 0x96, 0x99, 0x86, 0x72, 0x6F } };
 ```
 
-Alternatively, if you cannot use the struct, access the fields by raw byte offsets as shown in the table above.
+Alternatively, if you cannot use the structs, access the fields by raw byte offsets as shown in the tables above.
 
 ## Notes
 
-- The variable is non-volatile and persists across reboots; it is only created (and defaulted to all zeros) if it does not exist when the menu driver first runs.
-- Fields are shared across the MeiMeiDXEv3 family of drivers. All consumers must agree on the same variable name, GUID, and layout.
+- Each variable is non-volatile and persists across reboots; it is only created (and defaulted) if it does not exist when the menu driver first runs.
+- The three variables share one vendor GUID but differ by name, letting each feature's layout evolve without affecting the others.
 - The menu driver only stores the configuration — apply/decode the options in your own driver where appropriate.
-- Watch out for `EFI_BUFFER_TOO_SMALL` if the variable grows in the future; always pass `sizeof (MENU_CONFIG)` for `DataSize`.
+- All option questions are marked `RESET_REQUIRED` in the VFR, so the setup browser will offer/require a system reset before exiting setup whenever any option is changed (including the CoreUnlock state and per-core toggles).
+- Watch out for `EFI_BUFFER_TOO_SMALL` if a variable grows in the future; always pass `sizeof (STRUCT)` for `DataSize`.
