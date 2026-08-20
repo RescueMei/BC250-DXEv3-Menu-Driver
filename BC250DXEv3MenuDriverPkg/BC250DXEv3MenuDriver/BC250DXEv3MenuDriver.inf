@@ -15,8 +15,10 @@
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  BC250DXEv3MenuDriverPkg/BC250DXEv3MenuDriverPkg.dec
 
 [LibraryClasses]
+  BaseLib
   UefiDriverEntryPoint
   UefiBootServicesTableLib
   UefiRuntimeServicesTableLib
@@ -24,9 +26,17 @@
   HiiLib
   BaseMemoryLib
   SafeIntLib
+  UefiHiiServicesLib
+  MemoryAllocationLib
+  PrintLib
 
 [Protocols]
   gEfiHiiDatabaseProtocolGuid
+  gEfiHiiConfigRoutingProtocolGuid
+  gEfiHiiConfigAccessProtocolGuid
+  gEfiDevicePathProtocolGuid
+  gEfiHiiPopupProtocolGuid
+  gMeiMeiDXEv3CoreUnlockProtocolGuid
 
 [Depex]
-  gEfiHiiDatabaseProtocolGuid
+  gEfiHiiDatabaseProtocolGuid AND gEfiHiiConfigRoutingProtocolGuid

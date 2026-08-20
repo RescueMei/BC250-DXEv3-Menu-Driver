@@ -172,5 +172,23 @@ formset
         flags        = RESET_REQUIRED,
       endcheckbox;
 
+    // Core configuration validation action (a button, not a stored setting)
+      action
+        questionid = CORES_VALIDATE_QUESTION_ID,
+        prompt     = STRING_TOKEN(STR_VALIDATE_CORES_PROMPT),
+        help       = STRING_TOKEN(STR_VALIDATE_CORES_HELP),
+        flags      = INTERACTIVE,
+        config     = STRING_TOKEN(STR_EMPTY),
+      endaction;
+
+    // Restore factory core mask action (a button, not a stored setting)
+      action
+        questionid = CORES_RESTORE_FACTORY_QUESTION_ID,
+        prompt     = STRING_TOKEN(STR_RESTORE_FACTORY_PROMPT),
+        help       = STRING_TOKEN(STR_RESTORE_FACTORY_HELP),
+        flags      = INTERACTIVE,
+        config     = STRING_TOKEN(STR_EMPTY),
+      endaction;
+
   endform;
 endformset;

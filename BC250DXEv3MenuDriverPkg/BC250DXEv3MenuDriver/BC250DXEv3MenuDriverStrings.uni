@@ -55,3 +55,18 @@
 
 #string STR_CORE7_PROMPT             #language en-US "Core 7"
 #string STR_CORE7_HELP               #language en-US "Enable Core 7."
+
+#string STR_VALIDATE_CORES_PROMPT        #language en-US "Validate Core Configuration"
+#string STR_VALIDATE_CORES_HELP          #language en-US "Check the selected cores against the CCX0/CCX1 rules used by the core unlock driver: CCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty."
+
+#string STR_VALIDATE_PASS_TEXT           #language en-US "PASS - The core configuration is valid."
+
+#string STR_VALIDATE_FAIL_TEXT           #language en-US "FAIL - The core configuration is invalid.\nCCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty.\n\nSelect Yes to reset to the factory core mask, or No to return to the BIOS."
+
+#string STR_VALIDATE_NO_PROTOCOL_TEXT    #language en-US "The core unlock driver is not available, so the core selection cannot be reset to the factory core mask."
+
+#string STR_VALIDATE_NO_FACTORY_MASK_TEXT #language en-US "The factory core mask has not been learned yet (one-time cold boot pending); the core selection was not changed."
+
+#string STR_RESTORE_FACTORY_PROMPT       #language en-US "Restore Factory Core Mask"
+#string STR_RESTORE_FACTORY_HELP         #language en-US "Reset the selected cores to the learned factory core mask."
+#string STR_RESTORE_FACTORY_CONFIRM_TEXT #language en-US "Restore the core selection to the factory core mask?\nThis replaces the currently selected cores.\n\nSelect Yes to restore, or No to cancel."
