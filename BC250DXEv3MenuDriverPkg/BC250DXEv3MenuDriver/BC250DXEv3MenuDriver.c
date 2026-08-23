@@ -10,20 +10,21 @@
 #include <Library/PrintLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Protocol/DevicePath.h>
+#include <Protocol/GraphicsOutput.h>
 #include <Protocol/HiiConfigAccess.h>
 #include <Protocol/HiiPopup.h>
 #include <MeiMeiDXEv3CoreUnlockProtocol.h>
 #include "BC250DXEv3MenuDriver.h"
 
 extern UINT8 BC250DXEv3MenuDriverMenuBin[];
-extern UINT8 MeiMeiDXEv3MenuDriverStrings[];
+extern UINT8 MeiMeiDXEv3_Menu_DriverStrings[];
 
 EFI_GUID gMenuConfigGuid = { 0x49CC168D, 0xE8B0, 0x4613, { 0xA8, 0x07, 0x16, 0x96, 0x99, 0x86, 0x72, 0x6F } };
 EFI_HII_HANDLE mHiiHandle;
 
 //
 // Config access protocol installed on the driver handle. The setup browser
-// uses it to reach the validate action's Callback; ExtractConfig/RouteConfig
+// uses it to reach the action buttons' Callback; ExtractConfig/RouteConfig
 // bridge the formset's three efivarstores to their EFI variables.
 //
 EFI_HII_CONFIG_ACCESS_PROTOCOL  mConfigAccess;
@@ -121,142 +122,22 @@ InitVariableIfMissing (
 }
 
 /**
-  Count the number of enabled cores in a core presence mask byte.
+  Display a modal prompt directly on the console.
 
-  @param[in]  Mask  Core presence mask low byte.
+  AMI's proprietary setup browser does not produce the edk2
+  EFI_HII_POPUP_PROTOCOL, so popups are drawn manually on gST->ConOut and the
+  selection is read from gST->ConIn. This works in any setup environment
+  because the browser shares the same console.
 
-  @return  Number of set bits (0..8).
-**/
-STATIC
-UINTN
-CountCoreBits (
-  IN UINT8  Mask
-  )
-{
-  UINTN  Count;
-  UINTN  Bit;
-
-  Count = 0;
-  for (Bit = 0; Bit < 8; Bit++) {
-    if ((Mask & (UINT8)(1U << Bit)) != 0) {
-      Count++;
-    }
-  }
-
-  return Count;
-}
-
-/**
-  Assemble the custom core presence mask low byte from the per-core toggles.
-
-  @param[in]  Config  Core configuration.
-
-  @return  Core presence mask low byte built from Core0..Core7.
-**/
-STATIC
-UINT8
-ComputeCustomMask (
-  IN CONST CORE_CONFIG  *Config
-  )
-{
-  return (UINT8)((Config->Core0      ) |
-                 (Config->Core1 << 1 ) |
-                 (Config->Core2 << 2 ) |
-                 (Config->Core3 << 3 ) |
-                 (Config->Core4 << 4 ) |
-                 (Config->Core5 << 5 ) |
-                 (Config->Core6 << 6 ) |
-                 (Config->Core7 << 7 ));
-}
-
-/**
-  Determine whether a custom core presence mask is a valid CCX0/CCX1
-  configuration. Mirrors the rule set enforced by the BC250-DXEv3 SMU Core
-  Unlock driver:
-    * CCX0 (cores 0-3) must have at least one core enabled.
-    * CCX1 (cores 4-7) must have the same number of cores enabled as CCX0,
-      or have no cores enabled at all.
-
-  @param[in]  Mask  Core presence mask low byte.
-
-  @retval TRUE   The mask is a valid CCX0/CCX1 configuration.
-  @retval FALSE  The mask violates the CCX0/CCX1 rules.
-**/
-STATIC
-BOOLEAN
-IsCoreMaskValid (
-  IN UINT8  Mask
-  )
-{
-  UINTN  Ccx0Count;
-  UINTN  Ccx1Count;
-
-  Ccx0Count = CountCoreBits ((UINT8)(Mask & BC250_CCX0_CORE_BITS));
-  Ccx1Count = CountCoreBits ((UINT8)(Mask & BC250_CCX1_CORE_BITS));
-
-  if (Ccx0Count == 0) {
-    return FALSE;
-  }
-
-  if ((Ccx1Count != 0) && (Ccx1Count != Ccx0Count)) {
-    return FALSE;
-  }
-
-  return TRUE;
-}
-
-/**
-  Read the current core configuration from MeiMeiDXEv3CoreVar.
-
-  The efivarstore questions in this form write straight to the variable when
-  changed in the setup browser, so this reflects the current on-screen
-  selection.
-
-  @param[out] Config  Receives the core configuration (defaults when absent).
-
-  @retval EFI_SUCCESS  The configuration was read or defaulted.
-**/
-STATIC
-EFI_STATUS
-ReadCoreConfig (
-  OUT CORE_CONFIG  *Config
-  )
-{
-  EFI_STATUS  Status;
-  UINTN       Size;
-
-  Size   = sizeof (CORE_CONFIG);
-  Status = gRT->GetVariable (
-                  L"MeiMeiDXEv3CoreVar",
-                  &gMenuConfigGuid,
-                  NULL,
-                  &Size,
-                  Config
-                  );
-  if (EFI_ERROR (Status)) {
-    //
-    // Absent or unexpected size: apply the driver defaults.
-    //
-    ZeroMem (Config, sizeof (CORE_CONFIG));
-  }
-
-  return EFI_SUCCESS;
-}
-
-/**
-  Display a native setup-browser popup box.
-
-  The popup protocol is produced by the forms browser (DisplayEngine), which
-  is always loaded while a callback is running.
-
-  @param[in]  Style      Popup style (info / warning / error).
+  @param[in]  Style      Popup style (info / warning / error); only the
+                         color/attribute selection is affected.
   @param[in]  PopupType  Popup type (Ok, YesNo, ...). The box is modal and
                          waits for the user selection.
   @param[in]  Message    String token for the message (resolved against
                          mHiiHandle).
 
   @return  The user selection, or EfiHiiPopupSelectionCancel when the popup
-           protocol is unavailable or the popup could not be shown.
+           could not be shown.
 **/
 STATIC
 EFI_HII_POPUP_SELECTION
@@ -266,21 +147,362 @@ ShowPopup (
   IN EFI_STRING_ID        Message
   )
 {
-  EFI_HII_POPUP_PROTOCOL   *Popup;
-  EFI_HII_POPUP_SELECTION  Selection;
-  EFI_STATUS               Status;
+  EFI_HII_POPUP_SELECTION         Selection;
+  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *ConOut;
+  EFI_SIMPLE_TEXT_INPUT_PROTOCOL  *ConIn;
+  EFI_SIMPLE_TEXT_OUTPUT_MODE     SavedConsoleMode;
+  EFI_INPUT_KEY                   Key;
+  CHAR16                          *Text;
+  CHAR16                          *Start;
+  CHAR16                          *Line;
+  CHAR16                          *Cursor;
+  UINTN                           Columns;
+  UINTN                           Rows;
+  UINTN                           MaxLength;
+  UINTN                           NumberOfLines;
+  UINTN                           Row;
+  UINTN                           Column;
+  UINTN                           Index;
+  UINTN                           Length;
+  UINTN                           Attribute;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL    *Gop;
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL   *BltBuffer;
+  UINTN                           BoxLeft;
+  UINTN                           BoxTop;
+  UINTN                           BoxWidth;
+  UINTN                           BoxHeight;
+  UINTN                           PixelLeft;
+  UINTN                           PixelTop;
+  UINTN                           PixelWidth;
+  UINTN                           PixelHeight;
+  UINTN                           PixelCellWidth;
+  UINTN                           PixelCellHeight;
+  EFI_STATUS                      Status;
+
+  Selection       = EfiHiiPopupSelectionCancel;
+  ConOut          = gST->ConOut;
+  ConIn           = gST->ConIn;
+  Text            = NULL;
+  Start           = NULL;
+  Line            = NULL;
+  Gop             = NULL;
+  BltBuffer       = NULL;
+
+  if ((Style == EfiHiiPopupStyleError) || (Style == EfiHiiPopupStyleWarning)) {
+    Attribute = EFI_WHITE | EFI_BACKGROUND_RED;
+  } else {
+    Attribute = EFI_LIGHTGRAY | EFI_BACKGROUND_BLUE;
+  }
+
+  Text = HiiGetString (mHiiHandle, Message, NULL);
+  if ((Text == NULL) || (ConOut == NULL)) {
+    if (Text != NULL) {
+      FreePool (Text);
+    }
+
+    return EfiHiiPopupSelectionCancel;
+  }
+
+  Start = Text;
+
+  //
+  // Drain any queued keystrokes (for example the key press that activated
+  // the action button, or a repeating key) so a stale key cannot dismiss
+  // the dialog before it is visible.
+  //
+  if (ConIn != NULL) {
+    while (!EFI_ERROR (ConIn->ReadKeyStroke (ConIn, &Key))) {
+    }
+  }
+
+  //
+  // Split the message into lines and compute the box dimensions. Lines are
+  // separated by '\n'; a trailing '\r' is treated as part of the break.
+  //
+  MaxLength     = 0;
+  NumberOfLines = 0;
+  do {
+    Cursor = Text;
+    while ((*Cursor != L'\n') && (*Cursor != L'\0')) {
+      Cursor++;
+    }
+
+    Length = (UINTN)(Cursor - Text);
+    if ((Length > 0) && (Text[Length - 1] == L'\r')) {
+      Length--;
+    }
+
+    MaxLength = MAX (MaxLength, Length + 2);
+    NumberOfLines++;
+    if (*Cursor == L'\0') {
+      break;
+    }
+
+    Text = Cursor + 1;
+  } while (TRUE);
+
+  //
+  // Bound the box to the visible console and center it. The box is
+  // NumberOfLines message rows plus top, empty, hint, and bottom rows.
+  //
+  Columns = 80;
+  Rows    = 25;
+  ConOut->QueryMode (ConOut, ConOut->Mode->Mode, &Columns, &Rows);
+  MaxLength     = MIN (MaxLength, Columns - 4);
+  NumberOfLines = MIN (NumberOfLines, Rows - 6);
+
+  Column = (Columns - (MaxLength + 2)) / 2;
+  Row    = (Rows - (NumberOfLines + 4)) / 2;
+
+  //
+  // Remember the box footprint for the screen restore after dismissal.
+  //
+  BoxLeft   = Column;
+  BoxTop    = Row;
+  BoxWidth  = MaxLength + 2;
+  BoxHeight = NumberOfLines + 4;
+
+  if (ConIn == NULL) {
+    FreePool (Text);
+    return EfiHiiPopupSelectionCancel;
+  }
+
+  Text = Start;
+
+  Line = AllocateZeroPool ((MaxLength + 3) * sizeof (CHAR16));
+  if (Line == NULL) {
+    FreePool (Text);
+    return EfiHiiPopupSelectionCancel;
+  }
+
+  //
+  // Snapshot the console region behind the popup through GOP->Blt (which
+  // handles the pixel format and framebuffer mapping) so the exact glyphs
+  // and colors can be restored after dismissal. The setup browser does not
+  // repaint this region because the box is not part of its display model.
+  // One extra character cell is captured on every side so glyph overflow
+  // (text cells are often taller/wider than the integer division result)
+  // at the box edges is covered. The margin contains pre-popup pixels and
+  // is restored unchanged.
+  //
+  Status = gBS->LocateProtocol (&gEfiGraphicsOutputProtocolGuid, NULL, (VOID **)&Gop);
+  if (!EFI_ERROR (Status) && (Gop != NULL) && (Gop->Mode != NULL) && (Gop->Mode->Info != NULL) &&
+      (Columns != 0) && (Rows != 0))
+  {
+    PixelCellWidth  = Gop->Mode->Info->HorizontalResolution / Columns;
+    PixelCellHeight = Gop->Mode->Info->VerticalResolution / Rows;
+
+    PixelLeft   = BoxLeft * PixelCellWidth;
+    PixelTop    = BoxTop * PixelCellHeight;
+    PixelWidth  = BoxWidth * PixelCellWidth;
+    PixelHeight = BoxHeight * PixelCellHeight;
+
+    //
+    // Expand the capture by one cell on each side (clamped to the display)
+    // so any box pixels drawn outside the exact box rectangle, such as the
+    // tall-glyph slack beneath the bottom border row, are inside the region
+    // that is restored after dismissal.
+    //
+    PixelLeft  = (PixelLeft > PixelCellWidth) ? (PixelLeft - PixelCellWidth) : 0;
+    PixelTop   = (PixelTop > PixelCellHeight) ? (PixelTop - PixelCellHeight) : 0;
+    PixelWidth  += 2 * PixelCellWidth;
+    PixelHeight += 2 * PixelCellHeight;
+
+    if (PixelLeft + PixelWidth > Gop->Mode->Info->HorizontalResolution) {
+      PixelWidth = Gop->Mode->Info->HorizontalResolution - PixelLeft;
+    }
+
+    if (PixelTop + PixelHeight > Gop->Mode->Info->VerticalResolution) {
+      PixelHeight = Gop->Mode->Info->VerticalResolution - PixelTop;
+    }
+
+    if ((PixelWidth > 0) && (PixelHeight > 0)) {
+      BltBuffer = AllocatePool (PixelWidth * PixelHeight * sizeof (EFI_GRAPHICS_OUTPUT_BLT_PIXEL));
+      if (BltBuffer != NULL) {
+        Status = Gop->Blt (
+                       Gop,
+                       BltBuffer,
+                       EfiBltVideoToBltBuffer,
+                       PixelLeft,
+                       PixelTop,
+                       0,
+                       0,
+                       PixelWidth,
+                       PixelHeight,
+                       0
+                       );
+        if (EFI_ERROR (Status)) {
+          FreePool (BltBuffer);
+          BltBuffer = NULL;
+        }
+      }
+    }
+  }
+
+  //
+  // Save the console state and draw the box with the requested style.
+  //
+  CopyMem (&SavedConsoleMode, ConOut->Mode, sizeof (SavedConsoleMode));
+  ConOut->EnableCursor (ConOut, FALSE);
+  ConOut->SetAttribute (ConOut, Attribute);
+
+  SetMem16 (Line, (MaxLength + 2) * sizeof (CHAR16), BOXDRAW_HORIZONTAL);
+  Line[0]             = BOXDRAW_DOWN_RIGHT;
+  Line[MaxLength + 1] = BOXDRAW_DOWN_LEFT;
+  Line[MaxLength + 2] = L'\0';
+  ConOut->SetCursorPosition (ConOut, Column, Row++);
+  ConOut->OutputString (ConOut, Line);
+
+  //
+  // Draw the message lines.
+  //
+  do {
+    Cursor = Text;
+    while ((*Cursor != L'\n') && (*Cursor != L'\0')) {
+      Cursor++;
+    }
+
+    Length = (UINTN)(Cursor - Text);
+    if ((Length > 0) && (Text[Length - 1] == L'\r')) {
+      Length--;
+    }
+
+    if (Length > MaxLength) {
+      Length = MaxLength;
+    }
+
+    SetMem16 (Line, (MaxLength + 2) * sizeof (CHAR16), L' ');
+    Line[0]             = BOXDRAW_VERTICAL;
+    Line[MaxLength + 1] = BOXDRAW_VERTICAL;
+    Line[MaxLength + 2] = L'\0';
+    if (Length > 0) {
+      CopyMem (&Line[1], Text, Length * sizeof (CHAR16));
+    }
+
+    ConOut->SetCursorPosition (ConOut, Column, Row++);
+    ConOut->OutputString (ConOut, Line);
+
+    NumberOfLines--;
+    if ((*Cursor == L'\0') || (NumberOfLines == 0)) {
+      break;
+    }
+
+    Text = Cursor + 1;
+  } while (TRUE);
+
+  //
+  // Draw an empty line and the selectable-option hint.
+  //
+  SetMem16 (Line, (MaxLength + 2) * sizeof (CHAR16), L' ');
+  Line[0]             = BOXDRAW_VERTICAL;
+  Line[MaxLength + 1] = BOXDRAW_VERTICAL;
+  Line[MaxLength + 2] = L'\0';
+  ConOut->SetCursorPosition (ConOut, Column, Row++);
+  ConOut->OutputString (ConOut, Line);
+
+  if (PopupType == EfiHiiPopupTypeYesNo) {
+    Length = StrLen (L"[Y]es  [N]o");
+    if (Length > MaxLength) {
+      Length = MaxLength;
+    }
+
+    CopyMem (&Line[(MaxLength - Length) / 2 + 1], L"[Y]es  [N]o", Length * sizeof (CHAR16));
+  } else {
+    Length = StrLen (L"<Enter to continue>");
+    if (Length > MaxLength) {
+      Length = MaxLength;
+    }
+
+    CopyMem (&Line[(MaxLength - Length) / 2 + 1], L"<Enter to continue>", Length * sizeof (CHAR16));
+  }
+
+  Line[MaxLength + 2] = L'\0';
+  ConOut->SetCursorPosition (ConOut, Column, Row++);
+  ConOut->OutputString (ConOut, Line);
+
+  SetMem16 (Line, (MaxLength + 2) * sizeof (CHAR16), BOXDRAW_HORIZONTAL);
+  Line[0]             = BOXDRAW_UP_RIGHT;
+  Line[MaxLength + 1] = BOXDRAW_UP_LEFT;
+  Line[MaxLength + 2] = L'\0';
+  ConOut->SetCursorPosition (ConOut, Column, Row++);
+  ConOut->OutputString (ConOut, Line);
+
+  //
+  // Restore the console state before waiting for input.
+  //
+  ConOut->EnableCursor (ConOut, SavedConsoleMode.CursorVisible);
+  ConOut->SetCursorPosition (ConOut, SavedConsoleMode.CursorColumn, SavedConsoleMode.CursorRow);
+  ConOut->SetAttribute (ConOut, SavedConsoleMode.Attribute);
 
   Selection = EfiHiiPopupSelectionCancel;
+  for (;;) {
+    Status = ConIn->ReadKeyStroke (ConIn, &Key);
+    if (EFI_ERROR (Status)) {
+      if (Status == EFI_NOT_READY) {
+        gBS->WaitForEvent (1, &ConIn->WaitForKey, &Index);
+      }
 
-  Status = gBS->LocateProtocol (&gEfiHiiPopupProtocolGuid, NULL, (VOID **)&Popup);
-  if (EFI_ERROR (Status) || (Popup == NULL) || (Popup->CreatePopup == NULL)) {
-    return EfiHiiPopupSelectionCancel;
+      continue;
+    }
+
+    if (PopupType == EfiHiiPopupTypeOk) {
+      Selection = EfiHiiPopupSelectionOk;
+      break;
+    }
+
+    if ((Key.UnicodeChar == CHAR_CARRIAGE_RETURN) ||
+        (Key.UnicodeChar == L'y') || (Key.UnicodeChar == L'Y'))
+    {
+      Selection = EfiHiiPopupSelectionYes;
+      break;
+    } else if ((Key.UnicodeChar == L'n') || (Key.UnicodeChar == L'N') ||
+               (Key.ScanCode == SCAN_ESC))
+    {
+      Selection = EfiHiiPopupSelectionNo;
+      break;
+    }
   }
 
-  Status = Popup->CreatePopup (Popup, Style, PopupType, mHiiHandle, Message, &Selection);
+  //
+  // Restore the screen. If the framebuffer snapshot succeeded, blit it back
+  // so the popup disappears exactly as it was drawn and the user stays inside
+  // the submenu. Otherwise blank the box footprint as a fallback (the browser
+  // does not repaint the region on its own).
+  //
+  if (BltBuffer != NULL) {
+    Status = Gop->Blt (
+                   Gop,
+                   BltBuffer,
+                   EfiBltBufferToVideo,
+                   0,
+                   0,
+                   PixelLeft,
+                   PixelTop,
+                   PixelWidth,
+                   PixelHeight,
+                   0
+                   );
+    FreePool (BltBuffer);
+    BltBuffer = NULL;
+  } else {
+    Status = EFI_UNSUPPORTED;
+  }
+
   if (EFI_ERROR (Status)) {
-    return EfiHiiPopupSelectionCancel;
+    BoxHeight = Row - BoxTop;
+    SetMem16 (Line, BoxWidth * sizeof (CHAR16), L' ');
+    Line[BoxWidth] = L'\0';
+    ConOut->SetAttribute (ConOut, SavedConsoleMode.Attribute);
+    for (Index = 0; Index < BoxHeight; Index++) {
+      ConOut->SetCursorPosition (ConOut, BoxLeft, BoxTop + Index);
+      ConOut->OutputString (ConOut, Line);
+    }
   }
+
+  ConOut->SetCursorPosition (ConOut, SavedConsoleMode.CursorColumn, SavedConsoleMode.CursorRow);
+
+  FreePool (Line);
+  FreePool (Text);
 
   return Selection;
 }
@@ -310,7 +532,8 @@ ResetToFactoryMask (VOID)
   //
   Status = gBS->LocateProtocol (&gMeiMeiDXEv3CoreUnlockProtocolGuid, NULL, (VOID **)&Protocol);
   if (EFI_ERROR (Status) || (Protocol == NULL) || (Protocol->GetFactoryMask == NULL)) {
-    ShowPopup (EfiHiiPopupStyleWarning, EfiHiiPopupTypeOk, STRING_TOKEN (STR_VALIDATE_NO_PROTOCOL_TEXT));
+    DEBUG ((DEBUG_ERROR, "BC250DXEv3MenuDriver: core unlock protocol unavailable (Status=%r, Protocol=%p)\n", Status, Protocol));
+    ShowPopup (EfiHiiPopupStyleWarning, EfiHiiPopupTypeOk, STRING_TOKEN (STR_RESTORE_NO_PROTOCOL_TEXT));
     return EFI_SUCCESS;
   }
 
@@ -319,7 +542,8 @@ ResetToFactoryMask (VOID)
     //
     // EFI_NOT_FOUND: the one-shot cold-boot learning cycle has not completed.
     //
-    ShowPopup (EfiHiiPopupStyleWarning, EfiHiiPopupTypeOk, STRING_TOKEN (STR_VALIDATE_NO_FACTORY_MASK_TEXT));
+    DEBUG ((DEBUG_ERROR, "BC250DXEv3MenuDriver: GetFactoryMask failed: %r\n", Status));
+    ShowPopup (EfiHiiPopupStyleWarning, EfiHiiPopupTypeOk, STRING_TOKEN (STR_RESTORE_NO_FACTORY_MASK_TEXT));
     return EFI_SUCCESS;
   }
 
@@ -356,16 +580,23 @@ ResetToFactoryMask (VOID)
     NULL
     );
 
+  DEBUG ((DEBUG_INFO, "BC250DXEv3MenuDriver: restored core mask to factory mask 0x%02X\n", FactoryMask));
+
   return EFI_SUCCESS;
 }
 
 /**
-  Config access callback. Handles the "Validate Core Configuration" action
+  Config access callback. Handles the "Restore Factory Core Mask" action
   button in the Individual Core Options submenu.
 
-  The action is not a stored setting: it evaluates the currently selected
-  per-core mask against the CCX0/CCX1 rules and reports PASS/FAIL in a native
-  popup. On FAIL the user may reset the selected toggles to the factory mask.
+  Restore asks for a Yes/No confirmation and, on Yes, resets the selected
+  toggles to the learned factory core mask. The valid/invalid core-mask status
+  is shown declaratively in the form with suppressif-gated text, so it needs
+  no callback handling here.
+
+  The work is performed on EFI_BROWSER_ACTION_CHANGED (after the browser has
+  finished its CHANGING phase and consumed the activating keystroke), so the
+  native popups render reliably.
 
   @param  This          Points to the EFI_HII_CONFIG_ACCESS_PROTOCOL.
   @param  Action        Type of action taken by the browser.
@@ -389,9 +620,7 @@ Callback (
   OUT    EFI_BROWSER_ACTION_REQUEST            *ActionRequest
   )
 {
-  CORE_CONFIG  CoreConfig;
-  UINT8        Mask;
-  EFI_STATUS   Status;
+  EFI_STATUS  Status;
 
   if (ActionRequest == NULL) {
     return EFI_INVALID_PARAMETER;
@@ -399,53 +628,44 @@ Callback (
 
   *ActionRequest = EFI_BROWSER_ACTION_REQUEST_NONE;
 
-  if (Action != EFI_BROWSER_ACTION_CHANGING) {
-    return EFI_UNSUPPORTED;
-  }
+  DEBUG ((DEBUG_INFO, "BC250DXEv3MenuDriver: Callback(Action=0x%X, QuestionId=0x%X)\n", Action, QuestionId));
 
   //
-  // Restore action: confirm first, then reset the selected toggles to the
-  // learned factory core mask.
+  // CHANGING is dispatched while the browser is still processing the key
+  // press that selected the button; a popup from that phase would draw over
+  // the previous frame and could be dismissed before it is ever visible.
+  // Accept the change and let the browser finish its CHANGING phase so it
+  // dispatches CHANGED, where the popup and reset work is performed.
   //
-  if (QuestionId == CORES_RESTORE_FACTORY_QUESTION_ID) {
-    if (ShowPopup (EfiHiiPopupStyleWarning, EfiHiiPopupTypeYesNo,
-                   STRING_TOKEN (STR_RESTORE_FACTORY_CONFIRM_TEXT)) == EfiHiiPopupSelectionYes)
-    {
-      return ResetToFactoryMask ();
-    }
-
+  if (Action == EFI_BROWSER_ACTION_CHANGING) {
     return EFI_SUCCESS;
   }
 
-  if (QuestionId != CORES_VALIDATE_QUESTION_ID) {
+  if (Action != EFI_BROWSER_ACTION_CHANGED) {
     return EFI_UNSUPPORTED;
   }
 
-  Status = ReadCoreConfig (&CoreConfig);
-  if (EFI_ERROR (Status)) {
+  //
+  // Restore action: ask for confirmation, then reset the selected toggles to
+  // the learned factory core mask. ShowPopup restores the console region
+  // itself, so the user stays inside the submenu. After the reset, request a
+  // form apply so the browser refreshes the changed checkbox values (best
+  // effort; the varstore and the browser data are already updated either way).
+  //
+  if (QuestionId == CORES_RESTORE_FACTORY_QUESTION_ID) {
+    if (ShowPopup (EfiHiiPopupStyleWarning, EfiHiiPopupTypeYesNo, STRING_TOKEN (STR_RESTORE_FACTORY_CONFIRM_TEXT)) ==
+        EfiHiiPopupSelectionYes)
+    {
+      Status = ResetToFactoryMask ();
+      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_APPLY;
+    } else {
+      Status = EFI_SUCCESS;
+    }
+
     return Status;
   }
 
-  Mask = ComputeCustomMask (&CoreConfig);
-
-  if (IsCoreMaskValid (Mask)) {
-    //
-    // Pass: OK popup; the browser returns to the menu on the next key press.
-    //
-    ShowPopup (EfiHiiPopupStyleInfo, EfiHiiPopupTypeOk, STRING_TOKEN (STR_VALIDATE_PASS_TEXT));
-    return EFI_SUCCESS;
-  }
-
-  //
-  // Fail: offer to reset the selected toggles to the factory core mask.
-  //
-  if (ShowPopup (EfiHiiPopupStyleWarning, EfiHiiPopupTypeYesNo, STRING_TOKEN (STR_VALIDATE_FAIL_TEXT)) ==
-      EfiHiiPopupSelectionYes)
-  {
-    return ResetToFactoryMask ();
-  }
-
-  return EFI_SUCCESS;
+  return EFI_UNSUPPORTED;
 }
 
 /**
@@ -700,7 +920,7 @@ Bc250DxeV3MenuDriverEntryPoint (
 
   // Workaround to avoid problems with LTO in the compiler
   volatile UINT8 LtoBypass;
-  LtoBypass = BC250DXEv3MenuDriverMenuBin[0] + MeiMeiDXEv3MenuDriverStrings[0];
+  LtoBypass = BC250DXEv3MenuDriverMenuBin[0] + MeiMeiDXEv3_Menu_DriverStrings[0];
   (VOID)LtoBypass;
 
   // Initialize the ACPI configuration variable if it does not exist
@@ -742,7 +962,7 @@ Bc250DxeV3MenuDriverEntryPoint (
   //
   // Install the config access protocol (with our Callback) on a driver handle
   // and register the formset against it, so the setup browser can reach the
-  // validate action and the varstore bridge.
+  // action buttons' Callback and the varstore bridge.
   //
   mConfigAccess.ExtractConfig = ExtractConfig;
   mConfigAccess.RouteConfig   = RouteConfig;
@@ -764,7 +984,7 @@ Bc250DxeV3MenuDriverEntryPoint (
   mHiiHandle = HiiAddPackages (
                  &HiiGuid,
                  mDriverHandle,
-                 MeiMeiDXEv3MenuDriverStrings,
+                 MeiMeiDXEv3_Menu_DriverStrings,
                  BC250DXEv3MenuDriverMenuBin,
                  NULL
                  );

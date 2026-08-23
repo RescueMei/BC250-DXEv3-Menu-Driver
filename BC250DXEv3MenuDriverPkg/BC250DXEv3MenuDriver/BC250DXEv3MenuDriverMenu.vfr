@@ -120,24 +120,28 @@ formset
         text = STRING_TOKEN(STR_EMPTY);
 
       checkbox varid = MeiMeiDXEv3CoreVar.Core0,
+        questionid   = CORE0_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_CORE0_PROMPT),
         help         = STRING_TOKEN(STR_CORE0_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CoreVar.Core1,
+        questionid   = CORE1_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_CORE1_PROMPT),
         help         = STRING_TOKEN(STR_CORE1_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CoreVar.Core2,
+        questionid   = CORE2_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_CORE2_PROMPT),
         help         = STRING_TOKEN(STR_CORE2_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CoreVar.Core3,
+        questionid   = CORE3_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_CORE3_PROMPT),
         help         = STRING_TOKEN(STR_CORE3_HELP),
         flags        = RESET_REQUIRED,
@@ -154,37 +158,62 @@ formset
         text = STRING_TOKEN(STR_EMPTY);
 
       checkbox varid = MeiMeiDXEv3CoreVar.Core4,
+        questionid   = CORE4_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_CORE4_PROMPT),
         help         = STRING_TOKEN(STR_CORE4_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CoreVar.Core5,
+        questionid   = CORE5_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_CORE5_PROMPT),
         help         = STRING_TOKEN(STR_CORE5_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CoreVar.Core6,
+        questionid   = CORE6_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_CORE6_PROMPT),
         help         = STRING_TOKEN(STR_CORE6_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CoreVar.Core7,
+        questionid   = CORE7_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_CORE7_PROMPT),
         help         = STRING_TOKEN(STR_CORE7_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
-    // Core configuration validation action (a button, not a stored setting)
-      action
-        questionid = CORES_VALIDATE_QUESTION_ID,
-        prompt     = STRING_TOKEN(STR_VALIDATE_CORES_PROMPT),
-        help       = STRING_TOKEN(STR_VALIDATE_CORES_HELP),
-        flags      = INTERACTIVE,
-        config     = STRING_TOKEN(STR_EMPTY),
-      endaction;
+    // Live core configuration status. These blocks are shown or hidden
+    // automatically as the individual core checkboxes are toggled.
+      suppressif NOT (((questionref(CORE0_QUESTION_ID) + questionref(CORE1_QUESTION_ID) + questionref(CORE2_QUESTION_ID) + questionref(CORE3_QUESTION_ID)) >= 1)
+                   AND (((questionref(CORE4_QUESTION_ID) + questionref(CORE5_QUESTION_ID) + questionref(CORE6_QUESTION_ID) + questionref(CORE7_QUESTION_ID)) == 0)
+                     OR ((questionref(CORE4_QUESTION_ID) + questionref(CORE5_QUESTION_ID) + questionref(CORE6_QUESTION_ID) + questionref(CORE7_QUESTION_ID)) ==
+                         (questionref(CORE0_QUESTION_ID) + questionref(CORE1_QUESTION_ID) + questionref(CORE2_QUESTION_ID) + questionref(CORE3_QUESTION_ID)))));
+        subtitle
+          text  = STRING_TOKEN(STR_CORE_VALID_TITLE),
+          flags = 0,
+        endsubtitle;
+
+        text
+          help = STRING_TOKEN(STR_EMPTY),
+          text = STRING_TOKEN(STR_CORE_VALID_TEXT);
+      endif;
+
+      suppressif (((questionref(CORE0_QUESTION_ID) + questionref(CORE1_QUESTION_ID) + questionref(CORE2_QUESTION_ID) + questionref(CORE3_QUESTION_ID)) >= 1)
+               AND (((questionref(CORE4_QUESTION_ID) + questionref(CORE5_QUESTION_ID) + questionref(CORE6_QUESTION_ID) + questionref(CORE7_QUESTION_ID)) == 0)
+                 OR ((questionref(CORE4_QUESTION_ID) + questionref(CORE5_QUESTION_ID) + questionref(CORE6_QUESTION_ID) + questionref(CORE7_QUESTION_ID)) ==
+                     (questionref(CORE0_QUESTION_ID) + questionref(CORE1_QUESTION_ID) + questionref(CORE2_QUESTION_ID) + questionref(CORE3_QUESTION_ID)))));
+        subtitle
+          text  = STRING_TOKEN(STR_CORE_INVALID_TITLE),
+          flags = 0,
+        endsubtitle;
+
+        text
+          help = STRING_TOKEN(STR_EMPTY),
+          text = STRING_TOKEN(STR_CORE_INVALID_TEXT);
+      endif;
 
     // Restore factory core mask action (a button, not a stored setting)
       action

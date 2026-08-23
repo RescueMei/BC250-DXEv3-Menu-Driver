@@ -9,11 +9,18 @@
 #define CORE_UNLOCK_CUSTOM    2
 
 //
-// Question ID of the "Validate Core Configuration" action button in the
-// Individual Core Options submenu (form 2). The action is not a stored
-// setting; it is matched in the config access Callback.
+// Question IDs of the Core0..Core7 checkboxes (form 2). The VFR references
+// these with questionref() to compute the per-CCX core counts shown in the
+// valid/invalid status sections.
 //
-#define CORES_VALIDATE_QUESTION_ID  0x5000
+#define CORE0_QUESTION_ID  0x1100
+#define CORE1_QUESTION_ID  0x1101
+#define CORE2_QUESTION_ID  0x1102
+#define CORE3_QUESTION_ID  0x1103
+#define CORE4_QUESTION_ID  0x1104
+#define CORE5_QUESTION_ID  0x1105
+#define CORE6_QUESTION_ID  0x1106
+#define CORE7_QUESTION_ID  0x1107
 
 //
 // Question ID of the "Restore Factory Core Mask" action button in the
@@ -21,14 +28,6 @@
 // setting; it is matched in the config access Callback.
 //
 #define CORES_RESTORE_FACTORY_QUESTION_ID  0x5001
-
-//
-// CCX membership of the eight cores in the core presence mask.
-//   CCX0: cores 0-3 -> bits 0-3
-//   CCX1: cores 4-7 -> bits 4-7
-//
-#define BC250_CCX0_CORE_BITS  0x0FU
-#define BC250_CCX1_CORE_BITS  0xF0U
 
 //
 // ACPI configuration variable

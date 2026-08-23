@@ -56,16 +56,15 @@
 #string STR_CORE7_PROMPT             #language en-US "Core 7"
 #string STR_CORE7_HELP               #language en-US "Enable Core 7 (CCX1: Cores 4-7). CCX1 must have the same number of cores enabled as CCX0 or be empty, and CCX0 must keep at least one core enabled."
 
-#string STR_VALIDATE_CORES_PROMPT        #language en-US "Validate Core Configuration"
-#string STR_VALIDATE_CORES_HELP          #language en-US "Check the selected cores against the CCX0/CCX1 rules used by the core unlock driver: CCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty."
+#string STR_CORE_VALID_TITLE             #language en-US "Valid Core Mask"
+#string STR_CORE_VALID_TEXT              #language en-US "The selected core configuration is valid."
 
-#string STR_VALIDATE_PASS_TEXT           #language en-US "PASS - The core configuration is valid."
+#string STR_CORE_INVALID_TITLE           #language en-US "Invalid Core Configuration"
+#string STR_CORE_INVALID_TEXT            #language en-US "CCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty."
 
-#string STR_VALIDATE_FAIL_TEXT           #language en-US "FAIL - The core configuration is invalid.\nCCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty.\n\nSelect Yes to reset to the factory core mask, or No to return to the BIOS."
+#string STR_RESTORE_NO_PROTOCOL_TEXT     #language en-US "The core unlock driver is not available.\nThe core selection cannot be reset to the factory core mask."
 
-#string STR_VALIDATE_NO_PROTOCOL_TEXT    #language en-US "The core unlock driver is not available, so the core selection cannot be reset to the factory core mask."
-
-#string STR_VALIDATE_NO_FACTORY_MASK_TEXT #language en-US "The factory core mask has not been learned yet (one-time cold boot pending); the core selection was not changed."
+#string STR_RESTORE_NO_FACTORY_MASK_TEXT #language en-US "The factory core mask has not been learned yet\n(one-time cold boot pending).\nThe core selection was not changed."
 
 #string STR_RESTORE_FACTORY_PROMPT       #language en-US "Restore Factory Core Mask"
 #string STR_RESTORE_FACTORY_HELP         #language en-US "Reset the selected cores to the learned factory core mask."
