@@ -147,6 +147,10 @@ formset
         flags        = RESET_REQUIRED,
       endcheckbox;
 
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
     // CCX1: Cores 4-7
       subtitle
       text         = STRING_TOKEN(STR_SUBTITLE_CCX1_TEXT),
@@ -185,6 +189,10 @@ formset
         flags        = RESET_REQUIRED,
       endcheckbox;
 
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
     // Live core configuration status. These blocks are shown or hidden
     // automatically as the individual core checkboxes are toggled.
       suppressif NOT (((questionref(CORE0_QUESTION_ID) + questionref(CORE1_QUESTION_ID) + questionref(CORE2_QUESTION_ID) + questionref(CORE3_QUESTION_ID)) >= 1)
@@ -214,6 +222,10 @@ formset
           help = STRING_TOKEN(STR_EMPTY),
           text = STRING_TOKEN(STR_CORE_INVALID_TEXT);
       endif;
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
 
     // Restore factory core mask action (a button, not a stored setting)
       action
