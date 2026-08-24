@@ -203,10 +203,6 @@ formset
           text  = STRING_TOKEN(STR_CORE_VALID_TITLE),
           flags = 0,
         endsubtitle;
-
-        text
-          help = STRING_TOKEN(STR_EMPTY),
-          text = STRING_TOKEN(STR_CORE_VALID_TEXT);
       endif;
 
       suppressif (((questionref(CORE0_QUESTION_ID) + questionref(CORE1_QUESTION_ID) + questionref(CORE2_QUESTION_ID) + questionref(CORE3_QUESTION_ID)) >= 1)

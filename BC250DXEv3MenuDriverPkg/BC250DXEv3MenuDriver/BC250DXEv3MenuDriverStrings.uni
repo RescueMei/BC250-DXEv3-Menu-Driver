@@ -56,8 +56,7 @@
 #string STR_CORE7_PROMPT             #language en-US "Core 7"
 #string STR_CORE7_HELP               #language en-US "Enable Core 7 (CCX1: Cores 4-7). CCX1 must have the same number of cores enabled as CCX0 or be empty, and CCX0 must keep at least one core enabled."
 
-#string STR_CORE_VALID_TITLE             #language en-US "Valid Core Mask"
-#string STR_CORE_VALID_TEXT              #language en-US "The selected core configuration is valid."
+#string STR_CORE_VALID_TITLE             #language en-US "Valid Core Configuration"
 
 #string STR_CORE_INVALID_TITLE           #language en-US "Invalid Core Configuration"
 #string STR_CORE_INVALID_TEXT            #language en-US "CCX0 must keep at least one core enabled, and CCX1 must have the same number of cores enabled as CCX0 or be empty."
