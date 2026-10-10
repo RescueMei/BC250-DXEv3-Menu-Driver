@@ -77,8 +77,6 @@ STATIC CONST SMU_SAFE_POINT  mDefaultSmuSafePoints[SMU_SAFE_POINT_COUNT] = {
   { 0, 0, 2350, 1125 },
 };
 
-#define SMU_GOVERNOR_MIN_FREQ_DEFAULT  400
-#define SMU_GOVERNOR_MAX_FREQ_DEFAULT  2000
 
 //
 // Forward declarations for the config access protocol implementation.
@@ -996,9 +994,7 @@ Bc250DxeV3MenuDriverEntryPoint (
   // Initialize the SMU governor variable if it does not exist.
   // Fail-closed: SMUGovernorEnable defaults to 0.
   ZeroMem (&SmuGovernorConfig, sizeof (SMU_GOVERNOR_CONFIG));
-  SmuGovernorConfig.SMUGovernorEnable     = 0;
-  SmuGovernorConfig.GovernorMinFreq      = SMU_GOVERNOR_MIN_FREQ_DEFAULT;
-  SmuGovernorConfig.GovernorMaxFreq      = SMU_GOVERNOR_MAX_FREQ_DEFAULT;
+  SmuGovernorConfig.SMUGovernorEnable = 0;
   for (Index = 0; Index < SMU_SAFE_POINT_COUNT; Index++) {
     SmuGovernorConfig.GovernorFreqVoltPoints[Index] = mDefaultSmuSafePoints[Index];
   }

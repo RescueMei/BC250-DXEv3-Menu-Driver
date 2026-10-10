@@ -77,7 +77,7 @@
 #string STR_SAFEPOINTS_GOTO_HELP         #language en-US "Configure the frequency window and the frequency/voltage safe-point curve used by the in-SMU governor."
 
 #string STR_SAFEPOINTS_TITLE             #language en-US "In-SMU Governor Options"
-#string STR_SAFEPOINTS_INTRO             #language en-US "Frequency/voltage safe points for the SMU governor. Enable the points to use; disabled points are ignored. Requires SMU Unlock."
+#string STR_SAFEPOINTS_INTRO             #language en-US "Frequency/voltage safe points for the SMU governor. Enable the points to use; disabled points are ignored. The governor's Min/Max frequency is taken from the enabled points. Requires SMU Unlock."
 
 #string STR_SAFEPOINT_ENABLE_PROMPT      #language en-US "Enable"
 #string STR_SAFEPOINT_ENABLE_HELP        #language en-US "Use this safe point. Disabled points are ignored by the governor."
@@ -87,12 +87,6 @@
 
 #string STR_SAFEPOINT_VOLT_PROMPT        #language en-US "Voltage (mV)"
 #string STR_SAFEPOINT_VOLT_HELP          #language en-US "Rail voltage in millivolts for this safe point."
-
-#string STR_MIN_FREQ_PROMPT              #language en-US "Min Freq (MHz)"
-#string STR_MIN_FREQ_HELP                #language en-US "Lower bound of the governor's operating frequency window, in MHz."
-
-#string STR_MAX_FREQ_PROMPT              #language en-US "Max Freq (MHz)"
-#string STR_MAX_FREQ_HELP                #language en-US "Upper bound of the governor's operating frequency window, in MHz."
 
 #string STR_SAFEPOINT_1_TITLE            #language en-US "Freq Volt 1"
 #string STR_SAFEPOINT_2_TITLE            #language en-US "Freq Volt 2"

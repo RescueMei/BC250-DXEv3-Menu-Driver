@@ -263,31 +263,14 @@ formset
 
   endform;
 
-  // Submenu: In-SMU Governor Options (frequency window + V(f) safe points)
+  // Submenu: In-SMU Governor Options (V(f) safe points; the governor derives
+  // its clock window from the enabled points)
   form formid = 3,
     title = STRING_TOKEN(STR_SAFEPOINTS_TITLE);
 
       text
         help = STRING_TOKEN(STR_EMPTY),
         text = STRING_TOKEN(STR_SAFEPOINTS_INTRO);
-
-      numeric varid = MeiMeiDXEv3SmuGovernorVar.GovernorMinFreq,
-        prompt  = STRING_TOKEN(STR_MIN_FREQ_PROMPT),
-        help    = STRING_TOKEN(STR_MIN_FREQ_HELP),
-        flags   = RESET_REQUIRED,
-        minimum = 300,
-        maximum = 3000,
-        step    = 5,
-      endnumeric;
-
-      numeric varid = MeiMeiDXEv3SmuGovernorVar.GovernorMaxFreq,
-        prompt  = STRING_TOKEN(STR_MAX_FREQ_PROMPT),
-        help    = STRING_TOKEN(STR_MAX_FREQ_HELP),
-        flags   = RESET_REQUIRED,
-        minimum = 300,
-        maximum = 3000,
-        step    = 5,
-      endnumeric;
 
       text
         help = STRING_TOKEN(STR_EMPTY),

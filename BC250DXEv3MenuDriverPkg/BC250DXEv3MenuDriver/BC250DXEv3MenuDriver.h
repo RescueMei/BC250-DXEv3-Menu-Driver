@@ -83,8 +83,6 @@ typedef struct {
 typedef struct {
   UINT8           SMUGovernorEnable;                              // offset 0
   UINT8           Reserved;                                       // padding
-  UINT16          GovernorMinFreq;                                // MHz
-  UINT16          GovernorMaxFreq;                                // MHz
   SMU_SAFE_POINT  GovernorFreqVoltPoints[SMU_SAFE_POINT_COUNT];
 } SMU_GOVERNOR_CONFIG;
 

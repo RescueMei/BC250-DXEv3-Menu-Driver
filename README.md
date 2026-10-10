@@ -21,7 +21,7 @@ Every option lives in the single formset **"MeiMeiDXEv3 Menu"** (class `4`). Opt
 The two submenus are separate forms:
 
 - **Individual Core Options** — the CCX0/CCX1 per-core toggles, a live valid/invalid status block, and the *Restore Factory Core Mask* action.
-- **In-SMU Governor Options** — `Min Freq` and `Max Freq` (the governor's operating window) followed by 15 *Freq Volt* entries, each with an enable toggle plus a frequency (MHz) and voltage (mV).
+- **In-SMU Governor Options** — 15 *Freq Volt* entries, each with an enable toggle plus a frequency (MHz) and voltage (mV). The governor derives its clock window (Min/Max) from the enabled points; there are no separate Min/Max fields.
 
 All option questions are marked `RESET_REQUIRED`, so the setup browser offers/requires a system reset before exiting setup whenever any option is changed.
 
@@ -35,7 +35,7 @@ The menu front-end (VFR) stores settings in five separate non-volatile UEFI vari
 | `MeiMeiDXEv3SmuUnlockVar` | `SMU_UNLOCK_CONFIG` | 1 byte | `SmuUnlock` |
 | `MeiMeiDXEv3SmuPatchVar` | `SMU_PATCH_CONFIG` | 1 byte | `SmuReportingPatch` |
 | `MeiMeiDXEv3CoreVar` | `CORE_CONFIG` | 9 bytes | `CoreUnlock`, `Core0`–`Core7` |
-| `MeiMeiDXEv3SmuGovernorVar` | `SMU_GOVERNOR_CONFIG` | 96 bytes | `SMUGovernorEnable`, `GovernorMinFreq`, `GovernorMaxFreq`, `GovernorFreqVoltPoints[15]` |
+| `MeiMeiDXEv3SmuGovernorVar` | `SMU_GOVERNOR_CONFIG` | 92 bytes | `SMUGovernorEnable`, `GovernorFreqVoltPoints[15]` |
 
 Shared properties:
 
@@ -82,15 +82,13 @@ Multi-byte fields are little-endian and naturally aligned; the offsets below are
 | 7 | `Core6` | Enable Core 6 (`0` = disabled, `1` = enabled). |
 | 8 | `Core7` | Enable Core 7 (`0` = disabled, `1` = enabled). |
 
-### SMU_GOVERNOR_CONFIG (`MeiMeiDXEv3SmuGovernorVar`, 96 bytes)
+### SMU_GOVERNOR_CONFIG (`MeiMeiDXEv3SmuGovernorVar`, 92 bytes)
 
 | Offset | Field | Description |
 | --- | --- | --- |
 | 0 | `SMUGovernorEnable` | Enable the in-SMU GPU governor payload (`0` = disabled, `1` = enabled). Fail-closed: the BC250-DXEv3 SMU Governor driver reads this byte and only injects when it is non-zero. |
 | 1 | `Reserved` | Explicit padding so the layout is compiler-independent. |
-| 2 | `GovernorMinFreq` | Lower bound of the governor's operating frequency window, in MHz. |
-| 4 | `GovernorMaxFreq` | Upper bound of the governor's operating frequency window, in MHz. |
-| 6 | `GovernorFreqVoltPoints[15]` | 15 × `SMU_SAFE_POINT` (6 bytes each); see below. |
+| 2 | `GovernorFreqVoltPoints[15]` | 15 × `SMU_SAFE_POINT` (6 bytes each); see below. |
 
 `SMU_SAFE_POINT` (6 bytes):
 
@@ -101,7 +99,7 @@ Multi-byte fields are little-endian and naturally aligned; the offsets below are
 | 2 | `Frequency` | Frequency in MHz. |
 | 4 | `Voltage` | Voltage in mV. |
 
-`GovernorFreqVoltPoints[0]` starts at byte 6; `GovernorFreqVoltPoints[N]` is at `6 + N * 6`. The curve is expected to be stored in ascending frequency order.
+`GovernorFreqVoltPoints[0]` starts at byte 2; `GovernorFreqVoltPoints[N]` is at `2 + N * 6`. The curve is expected to be stored in ascending frequency order. The governor's clock window (Min/Max) is derived from the enabled points, not stored separately.
 
 ### CoreUnlock states
 
@@ -123,7 +121,7 @@ Defaults are written only when a variable does not exist yet (first boot / after
 | `MeiMeiDXEv3SmuUnlockVar` | `SmuUnlock = 0` |
 | `MeiMeiDXEv3SmuPatchVar` | `SmuReportingPatch = 0` |
 | `MeiMeiDXEv3CoreVar` | `CoreUnlock = CORE_UNLOCK_DISABLED`, all cores `0` |
-| `MeiMeiDXEv3SmuGovernorVar` | `SMUGovernorEnable = 0` (disabled), `GovernorMinFreq = 400`, `GovernorMaxFreq = 2000`, and the 15 points in the table below. |
+| `MeiMeiDXEv3SmuGovernorVar` | `SMUGovernorEnable = 0` (disabled), and the 15 points in the table below (the governor derives its Min/Max from the enabled points). |
 
 Default safe points (`Frequency` MHz / `Voltage` mV / `Enable`):
 
@@ -188,8 +186,6 @@ typedef struct {
 typedef struct {
   UINT8           SMUGovernorEnable;   // offset 0
   UINT8           Reserved;            // padding
-  UINT16          GovernorMinFreq;     // MHz
-  UINT16          GovernorMaxFreq;     // MHz
   SMU_SAFE_POINT  GovernorFreqVoltPoints[SMU_SAFE_POINT_COUNT];
 } SMU_GOVERNOR_CONFIG;
 ```
@@ -250,8 +246,7 @@ The in-SMU governor gate is the `SMUGovernorEnable` byte of `MeiMeiDXEv3SmuGover
                                     &gMeiMeiDXEv3ConfigVarGuid, NULL,
                                     &Size, &GovConfig)) &&
       (GovConfig.SMUGovernorEnable != 0)) {
-    // governor enabled; GovConfig.GovernorMinFreq / GovernorMaxFreq /
-    // GovernorFreqVoltPoints[] hold the configured curve
+    // governor enabled; GovConfig.GovernorFreqVoltPoints[] holds the curve
   }
 ```
 
