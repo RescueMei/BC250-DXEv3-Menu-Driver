@@ -1,12 +1,33 @@
 # BC250-DXEv3-Menu-Driver
 
-Driver for my v3 bios to add options that will not interfere with existing options in the BIOS. It registers an HII formset that exposes a set of options in the BIOS setup menu for the MeiMeiDXEv3 family of drivers (ACPI patching, SMU unlock, core unlock, and per-core selection).
+Driver for my v3 bios to add options that will not interfere with existing options in the BIOS. It registers an HII formset that exposes a set of options in the BIOS setup menu for the MeiMeiDXEv3 family of drivers (ACPI patching, SMU unlock, SMU reporting patch, core unlock and per-core selection, and the in-SMU GPU governor).
 
 The driver's purpose is only to present and store the configuration below. It does not apply the options itself; other drivers should read the variables and act on them.
 
+## Menu Layout
+
+Every option lives in the single formset **"MeiMeiDXEv3 Menu"** (class `4`). Options are grouped into four sections:
+
+| Section | Option | Variable | Gated by |
+| --- | --- | --- | --- |
+| Patch Options | ACPI Patch | `MeiMeiDXEv3AcpiVar` | — |
+| SMU Options | SMU Unlock | `MeiMeiDXEv3SmuUnlockVar` | — |
+| SMU Options | SMU Reporting Patch | `MeiMeiDXEv3SmuPatchVar` | SMU Unlock = 1 |
+| GPU Options | In-SMU Governor | `MeiMeiDXEv3SmuGovernorEnable` | SMU Unlock = 1 |
+| GPU Options | In-SMU Governor Options (submenu) | `MeiMeiDXEv3SmuGovernorConfig` | In-SMU Governor = 1 |
+| CPU Options | Core Unlock | `MeiMeiDXEv3CoreVar` | SMU Unlock = 1 |
+| CPU Options | Individual Core Options (submenu) | `MeiMeiDXEv3CoreVar` | Core Unlock = Custom |
+
+The two submenus are separate forms:
+
+- **Individual Core Options** — the CCX0/CCX1 per-core toggles, a live valid/invalid status block, and the *Restore Factory Core Mask* action.
+- **In-SMU Governor Options** — `Min Freq` and `Max Freq` (the governor's operating window) followed by 15 *Freq Volt* entries, each with an enable toggle plus a frequency (MHz) and voltage (mV).
+
+All option questions are marked `RESET_REQUIRED`, so the setup browser offers/requires a system reset before exiting setup whenever any option is changed.
+
 ## Configuration Variables
 
-The menu front-end (VFR) stores settings in four separate non-volatile UEFI variables. All four share the same vendor GUID; they differ only in variable name. Each variable holds a single small struct, so the layout of one feature can evolve independently of the others.
+The menu front-end (VFR) stores settings in six separate non-volatile UEFI variables. All six share the same vendor GUID; they differ only in variable name. Each variable holds a single small struct, so the layout of one feature can evolve independently of the others.
 
 | Variable name | Struct | Size | Contents |
 | --- | --- | --- | --- |
@@ -14,6 +35,8 @@ The menu front-end (VFR) stores settings in four separate non-volatile UEFI vari
 | `MeiMeiDXEv3SmuUnlockVar` | `SMU_UNLOCK_CONFIG` | 1 byte | `SmuUnlock` |
 | `MeiMeiDXEv3SmuPatchVar` | `SMU_PATCH_CONFIG` | 1 byte | `SmuReportingPatch` |
 | `MeiMeiDXEv3CoreVar` | `CORE_CONFIG` | 9 bytes | `CoreUnlock`, `Core0`–`Core7` |
+| `MeiMeiDXEv3SmuGovernorEnable` | `SMU_GOVERNOR_ENABLE_CONFIG` | 1 byte | `SmuGovernor` |
+| `MeiMeiDXEv3SmuGovernorConfig` | `SMU_GOVERNOR_CONFIG` | 98 bytes | `Schema`, `Count`, `MinFrequency`, `MaxFrequency`, `Point[15]` |
 
 Shared properties:
 
@@ -22,11 +45,11 @@ Shared properties:
 | Vendor GUID | `49CC168D-E8B0-4613-A807-16969986726F` |
 | Attributes | `EFI_VARIABLE_BOOTSERVICE_ACCESS` \| `EFI_VARIABLE_RUNTIME_ACCESS` \| `EFI_VARIABLE_NON_VOLATILE` |
 
-If a variable does not already exist when the driver starts, it is created and initialized with its defaults (`AcpiPatch = 0`, `SmuUnlock = 0`, `SmuReportingPatch = 0`, `CoreUnlock = CORE_UNLOCK_DISABLED`, all cores `0`).
+If a variable does not already exist when the driver starts, it is created and initialized with its defaults (see **Defaults** below).
 
 ## Variable Contents
 
-Every field is a single-byte `UINT8`. Offsets are byte offsets from the start of that variable's data.
+Multi-byte fields are little-endian and naturally aligned; the offsets below are byte offsets from the start of that variable's data. `UINT8` fields are a single byte.
 
 ### ACPI_CONFIG (`MeiMeiDXEv3AcpiVar`, 1 byte)
 
@@ -38,7 +61,7 @@ Every field is a single-byte `UINT8`. Offsets are byte offsets from the start of
 
 | Offset | Field | Description |
 | --- | --- | --- |
-| 0 | `SmuUnlock` | SMU unlock. Required for the SMU reporting patch and the core options below (`0` = disabled, `1` = enabled). |
+| 0 | `SmuUnlock` | SMU unlock. Required for the SMU reporting patch, the GPU options, and the core options below (`0` = disabled, `1` = enabled). |
 
 ### SMU_PATCH_CONFIG (`MeiMeiDXEv3SmuPatchVar`, 1 byte)
 
@@ -60,6 +83,33 @@ Every field is a single-byte `UINT8`. Offsets are byte offsets from the start of
 | 7 | `Core6` | Enable Core 6 (`0` = disabled, `1` = enabled). |
 | 8 | `Core7` | Enable Core 7 (`0` = disabled, `1` = enabled). |
 
+### SMU_GOVERNOR_ENABLE_CONFIG (`MeiMeiDXEv3SmuGovernorEnable`, 1 byte)
+
+| Offset | Field | Description |
+| --- | --- | --- |
+| 0 | `SmuGovernor` | Enable the in-SMU GPU governor payload (`0` = disabled, `1` = enabled). Fail-closed: the BC250-DXEv3 SMU Governor driver reads this byte and only injects when it is non-zero. |
+
+### SMU_GOVERNOR_CONFIG (`MeiMeiDXEv3SmuGovernorConfig`, 98 bytes)
+
+| Offset | Field | Description |
+| --- | --- | --- |
+| 0 | `Schema` | Schema version (`SMU_SAFE_POINTS_SCHEMA` = `1`). |
+| 2 | `Count` | Number of valid `Point` entries (`SMU_SAFE_POINT_COUNT` = `15`). |
+| 4 | `MinFrequency` | Lower bound of the governor's operating frequency window, in MHz. |
+| 6 | `MaxFrequency` | Upper bound of the governor's operating frequency window, in MHz. |
+| 8 | `Point[15]` | 15 × `SMU_SAFE_POINT` (6 bytes each); see below. |
+
+`SMU_SAFE_POINT` (6 bytes):
+
+| Offset (within entry) | Field | Description |
+| --- | --- | --- |
+| 0 | `Enable` | Use this point (`0` = ignored, non-zero = used). |
+| 1 | `Reserved` | Explicit padding so the layout is compiler-independent. |
+| 2 | `Frequency` | Frequency in MHz. |
+| 4 | `Voltage` | Voltage in mV. |
+
+`Point[0]` starts at byte 8; `Point[N]` is at `8 + N * 6`. The curve is expected to be stored in ascending frequency order.
+
 ### CoreUnlock states
 
 `CoreUnlock` is a three-state selection in the setup menu:
@@ -68,11 +118,48 @@ Every field is a single-byte `UINT8`. Offsets are byte offsets from the start of
 | --- | --- | --- |
 | 0 | `CORE_UNLOCK_DISABLED` | Disabled (factory settings; core unlock not applied). |
 | 1 | `CORE_UNLOCK_ALL_CORES` | Unlock all cores. |
-| 2 | `CORE_UNLOCK_CUSTOM` | Core unlock is enabled with the per-core selection (`Core0` – `Core7`). The "Individual Core Toggles" submenu is only selectable in this mode. |
+| 2 | `CORE_UNLOCK_CUSTOM` | Core unlock is enabled with the per-core selection (`Core0` – `Core7`). The "Individual Core Options" submenu is only selectable in this mode. |
+
+## Defaults
+
+Defaults are written only when a variable does not exist yet (first boot / after clearing NVRAM). They are not re-applied afterward.
+
+| Variable | Default |
+| --- | --- |
+| `MeiMeiDXEv3AcpiVar` | `AcpiPatch = 0` |
+| `MeiMeiDXEv3SmuUnlockVar` | `SmuUnlock = 0` |
+| `MeiMeiDXEv3SmuPatchVar` | `SmuReportingPatch = 0` |
+| `MeiMeiDXEv3CoreVar` | `CoreUnlock = CORE_UNLOCK_DISABLED`, all cores `0` |
+| `MeiMeiDXEv3SmuGovernorEnable` | `SmuGovernor = 0` (disabled) |
+| `MeiMeiDXEv3SmuGovernorConfig` | `Schema = 1`, `Count = 15`, `MinFrequency = 400`, `MaxFrequency = 2000`, and the 15 points in the table below. |
+
+Default safe points (`Frequency` MHz / `Voltage` mV / `Enable`):
+
+| # | Freq | Volt | Enable |
+| --- | --- | --- | --- |
+| 1 | 400 | 700 | yes |
+| 2 | 1175 | 700 | yes |
+| 3 | 1400 | 750 | yes |
+| 4 | 1600 | 800 | yes |
+| 5 | 1700 | 850 | yes |
+| 6 | 1850 | 900 | yes |
+| 7 | 2000 | 950 | yes |
+| 8 | 2050 | 975 | no |
+| 9 | 2100 | 1000 | no |
+| 10 | 2125 | 1015 | no |
+| 11 | 2150 | 1025 | no |
+| 12 | 2200 | 1045 | no |
+| 13 | 2230 | 1075 | no |
+| 14 | 2300 | 1100 | no |
+| 15 | 2350 | 1125 | no |
 
 The canonical definitions live in `BC250DXEv3MenuDriverPkg/BC250DXEv3MenuDriver/BC250DXEv3MenuDriver.h`:
 
 ```c
+#define CORE_UNLOCK_DISABLED   0
+#define CORE_UNLOCK_ALL_CORES  1
+#define CORE_UNLOCK_CUSTOM     2
+
 typedef struct {
   UINT8  AcpiPatch;
 } ACPI_CONFIG;
@@ -96,6 +183,28 @@ typedef struct {
   UINT8  Core6;
   UINT8  Core7;
 } CORE_CONFIG;
+
+#define SMU_SAFE_POINT_COUNT    15
+#define SMU_SAFE_POINTS_SCHEMA  1
+
+typedef struct {
+  UINT8  SmuGovernor;   // 0 = disabled, non-zero = enabled
+} SMU_GOVERNOR_ENABLE_CONFIG;
+
+typedef struct {
+  UINT8   Enable;      // 0 = ignore this point, non-zero = use it
+  UINT8   Reserved;    // explicit padding so the layout is compiler-independent
+  UINT16  Frequency;   // MHz
+  UINT16  Voltage;     // mV
+} SMU_SAFE_POINT;
+
+typedef struct {
+  UINT16          Schema;          // SMU_SAFE_POINTS_SCHEMA
+  UINT16          Count;           // number of valid Point entries
+  UINT16          MinFrequency;    // MHz
+  UINT16          MaxFrequency;    // MHz
+  SMU_SAFE_POINT  Point[SMU_SAFE_POINT_COUNT];
+} SMU_GOVERNOR_CONFIG;
 ```
 
 ## Using These Variables From Other Drivers
@@ -110,7 +219,7 @@ Include the header (or copy the structs/GUID into your driver) and read the vari
 #include <Uefi.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
-#include "BC250DXEv3MenuDriver.h"   // defines ACPI_CONFIG, SMU_UNLOCK_CONFIG, SMU_PATCH_CONFIG, CORE_CONFIG
+#include "BC250DXEv3MenuDriver.h"   // defines ACPI_CONFIG, SMU_UNLOCK_CONFIG, SMU_PATCH_CONFIG, CORE_CONFIG, SMU_GOVERNOR_ENABLE_CONFIG, SMU_GOVERNOR_CONFIG
 #include "Guid/MeiMeiDXEv3ConfigVar.h"  // defines gMeiMeiDXEv3ConfigVarGuid (see below)
 
 EFI_STATUS
@@ -142,6 +251,20 @@ ReadCoreConfig (
 
   return EFI_SUCCESS;
 }
+```
+
+The in-SMU governor gate is the `SmuGovernor` byte of `MeiMeiDXEv3SmuGovernorEnable` (fail-closed):
+
+```c
+  SMU_GOVERNOR_ENABLE_CONFIG  GovEnable;
+  UINTN                       Size = sizeof (GovEnable);
+
+  if (!EFI_ERROR (gRT->GetVariable (L"MeiMeiDXEv3SmuGovernorEnable",
+                                    &gMeiMeiDXEv3ConfigVarGuid, NULL,
+                                    &Size, &GovEnable)) &&
+      (GovEnable.SmuGovernor != 0)) {
+    // governor enabled
+  }
 ```
 
 Usage:
@@ -219,9 +342,9 @@ Alternatively, if you cannot use the structs, access the fields by raw byte offs
 ## Notes
 
 - Each variable is non-volatile and persists across reboots; it is only created (and defaulted) if it does not exist when the menu driver first runs.
-- The four variables share one vendor GUID but differ by name, letting each feature's layout evolve without affecting the others.
+- All six variables share one vendor GUID but differ by name, letting each feature's layout evolve without affecting the others.
 - The menu driver only stores the configuration — apply/decode the options in your own driver where appropriate.
+- The SMU governor enable and its V(f) configuration are split so the BC250-DXEv3 SMU Governor driver can gate injection on the single `SmuGovernor` byte while reading the curve separately.
 - The Individual Core Options submenu shows a live status block above the restore button. When the selected cores satisfy the CCX0/CCX1 rules (CCX0 must keep at least one core enabled, and CCX1 must have the same number of enabled cores as CCX0 or be empty), a "Valid Core Configuration" section is shown; otherwise an "Invalid Core Configuration" warning with the CCX requirements is shown. These are declarative `suppressif`-gated `subtitle`/`text` statements driven by `questionref()` sums over the Core0-Core7 checkboxes, so they update automatically as cores are toggled (no callback involved).
 - The submenu also has a "Restore Factory Core Mask" action button. It asks for confirmation and, on Yes, resets the currently selected Core0-Core7 toggles to the learned factory core mask (read through `gMeiMeiDXEv3CoreUnlockProtocolGuid` / `GetFactoryMask`, produced by the BC-250 DXEv3 Core Unlock driver). If that driver is absent, or the factory mask has not been learned yet, an informational popup is shown and nothing is reset.
-- All option questions are marked `RESET_REQUIRED` in the VFR, so the setup browser will offer/require a system reset before exiting setup whenever any option is changed (including the CoreUnlock state and per-core toggles).
 - Watch out for `EFI_BUFFER_TOO_SMALL` if a variable grows in the future; always pass `sizeof (STRUCT)` for `DataSize`.
