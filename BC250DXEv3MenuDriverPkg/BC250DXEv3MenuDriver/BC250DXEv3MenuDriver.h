@@ -63,21 +63,15 @@ typedef struct {
 } CORE_CONFIG;
 
 //
-// SMU governor variables. The enable is a separate fail-closed flag (the
-// governor driver reads its first byte); the config holds the operating
-// frequency window and the V(f) safe-point curve that the governor maps onto
-// the SMU AVFS tables at boot. Each of the 15 points may be enabled
-// independently; disabled points are ignored.
+// SMU governor configuration variable (all governor options live here). The
+// governor driver reads SMUGovernorEnable at offset 0 (fail-closed: absent or
+// zero leaves injection disabled) and maps the GovernorFreqVoltPoints curve
+// onto the SMU AVFS tables at boot. Each point may be enabled independently;
+// disabled points are ignored.
 //
-#define SMU_GOVERNOR_ENABLE_VAR_NAME  L"MeiMeiDXEv3SmuGovernorEnable"
-#define SMU_GOVERNOR_CONFIG_VAR_NAME  L"MeiMeiDXEv3SmuGovernorConfig"
+#define SMU_GOVERNOR_VAR_NAME   L"MeiMeiDXEv3SmuGovernorVar"
 
 #define SMU_SAFE_POINT_COUNT    15
-#define SMU_SAFE_POINTS_SCHEMA  1
-
-typedef struct {
-  UINT8  SmuGovernor;   // 0 = disabled, non-zero = enabled
-} SMU_GOVERNOR_ENABLE_CONFIG;
 
 typedef struct {
   UINT8   Enable;      // 0 = ignore this point, non-zero = use it
@@ -87,11 +81,11 @@ typedef struct {
 } SMU_SAFE_POINT;
 
 typedef struct {
-  UINT16          Schema;          // SMU_SAFE_POINTS_SCHEMA
-  UINT16          Count;           // number of valid Point entries
-  UINT16          MinFrequency;    // MHz
-  UINT16          MaxFrequency;    // MHz
-  SMU_SAFE_POINT  Point[SMU_SAFE_POINT_COUNT];
+  UINT8           SMUGovernorEnable;                              // offset 0
+  UINT8           Reserved;                                       // padding
+  UINT16          GovernorMinFreq;                                // MHz
+  UINT16          GovernorMaxFreq;                                // MHz
+  SMU_SAFE_POINT  GovernorFreqVoltPoints[SMU_SAFE_POINT_COUNT];
 } SMU_GOVERNOR_CONFIG;
 
 #endif // __BC250DXEV3MENUDRIVER_H__

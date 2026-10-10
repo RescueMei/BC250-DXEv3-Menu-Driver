@@ -774,11 +774,8 @@ ExtractConfig (
     } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3SmuPatchVar")) {
       VarName    = L"MeiMeiDXEv3SmuPatchVar";
       BufferSize = sizeof (SMU_PATCH_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, SMU_GOVERNOR_ENABLE_VAR_NAME)) {
-      VarName    = SMU_GOVERNOR_ENABLE_VAR_NAME;
-      BufferSize = sizeof (SMU_GOVERNOR_ENABLE_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, SMU_GOVERNOR_CONFIG_VAR_NAME)) {
-      VarName    = SMU_GOVERNOR_CONFIG_VAR_NAME;
+    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, SMU_GOVERNOR_VAR_NAME)) {
+      VarName    = SMU_GOVERNOR_VAR_NAME;
       BufferSize = sizeof (SMU_GOVERNOR_CONFIG);
     } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3CoreVar")) {
       VarName    = L"MeiMeiDXEv3CoreVar";
@@ -877,11 +874,8 @@ RouteConfig (
   } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3SmuPatchVar")) {
     VarName    = L"MeiMeiDXEv3SmuPatchVar";
     BufferSize = sizeof (SMU_PATCH_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, SMU_GOVERNOR_ENABLE_VAR_NAME)) {
-    VarName    = SMU_GOVERNOR_ENABLE_VAR_NAME;
-    BufferSize = sizeof (SMU_GOVERNOR_ENABLE_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, SMU_GOVERNOR_CONFIG_VAR_NAME)) {
-    VarName    = SMU_GOVERNOR_CONFIG_VAR_NAME;
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, SMU_GOVERNOR_VAR_NAME)) {
+    VarName    = SMU_GOVERNOR_VAR_NAME;
     BufferSize = sizeof (SMU_GOVERNOR_CONFIG);
   } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3CoreVar")) {
     VarName    = L"MeiMeiDXEv3CoreVar";
@@ -953,7 +947,6 @@ Bc250DxeV3MenuDriverEntryPoint (
   ACPI_CONFIG         AcpiConfig;
   SMU_UNLOCK_CONFIG   SmuUnlockConfig;
   SMU_PATCH_CONFIG    SmuPatchConfig;
-  SMU_GOVERNOR_ENABLE_CONFIG SmuGovernorEnableConfig;
   SMU_GOVERNOR_CONFIG SmuGovernorConfig;
   CORE_CONFIG         CoreConfig;
   UINTN        Index;
@@ -1000,24 +993,16 @@ Bc250DxeV3MenuDriverEntryPoint (
     return Status;
   }
 
-  // Initialize the SMU governor enable variable if it does not exist
-  // (fail-closed: disabled by default).
-  SmuGovernorEnableConfig.SmuGovernor = 0;
-  Status = InitVariableIfMissing (SMU_GOVERNOR_ENABLE_VAR_NAME, &gMenuConfigGuid, &SmuGovernorEnableConfig, sizeof (SMU_GOVERNOR_ENABLE_CONFIG));
-  if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
-    return Status;
-  }
-
-  // Initialize the SMU governor configuration variable if it does not exist.
+  // Initialize the SMU governor variable if it does not exist.
+  // Fail-closed: SMUGovernorEnable defaults to 0.
   ZeroMem (&SmuGovernorConfig, sizeof (SMU_GOVERNOR_CONFIG));
-  SmuGovernorConfig.Schema       = SMU_SAFE_POINTS_SCHEMA;
-  SmuGovernorConfig.Count        = SMU_SAFE_POINT_COUNT;
-  SmuGovernorConfig.MinFrequency = SMU_GOVERNOR_MIN_FREQ_DEFAULT;
-  SmuGovernorConfig.MaxFrequency = SMU_GOVERNOR_MAX_FREQ_DEFAULT;
+  SmuGovernorConfig.SMUGovernorEnable     = 0;
+  SmuGovernorConfig.GovernorMinFreq      = SMU_GOVERNOR_MIN_FREQ_DEFAULT;
+  SmuGovernorConfig.GovernorMaxFreq      = SMU_GOVERNOR_MAX_FREQ_DEFAULT;
   for (Index = 0; Index < SMU_SAFE_POINT_COUNT; Index++) {
-    SmuGovernorConfig.Point[Index] = mDefaultSmuSafePoints[Index];
+    SmuGovernorConfig.GovernorFreqVoltPoints[Index] = mDefaultSmuSafePoints[Index];
   }
-  Status = InitVariableIfMissing (SMU_GOVERNOR_CONFIG_VAR_NAME, &gMenuConfigGuid, &SmuGovernorConfig, sizeof (SMU_GOVERNOR_CONFIG));
+  Status = InitVariableIfMissing (SMU_GOVERNOR_VAR_NAME, &gMenuConfigGuid, &SmuGovernorConfig, sizeof (SMU_GOVERNOR_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
