@@ -37,6 +37,11 @@ formset
     name      = MeiMeiDXEv3CoreVar,
     guid      = MENU_CONFIG_GUID;
 
+  efivarstore CU_CONFIG,
+    attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+    name      = MeiMeiDXEv3CuVar,
+    guid      = MENU_CONFIG_GUID;
+
   form formid = 1,
     title = STRING_TOKEN(STR_FORM_TITLE);
 
@@ -102,6 +107,37 @@ formset
         goto 3,
           prompt = STRING_TOKEN(STR_SAFEPOINTS_GOTO_PROMPT),
           help   = STRING_TOKEN(STR_SAFEPOINTS_GOTO_HELP);
+      endif;
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
+    // GPU compute units (CU) options
+      subtitle
+      text         = STRING_TOKEN(STR_SUBTITLE_GPU_CU_TEXT),
+      flags        = 0,
+    endsubtitle;
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
+      grayoutif NOT ideqval MeiMeiDXEv3SmuUnlockVar.SmuUnlock == 1;
+        oneof varid = MeiMeiDXEv3CuVar.Mode,
+          prompt       = STRING_TOKEN(STR_GPU_CU_PROMPT),
+          help         = STRING_TOKEN(STR_GPU_CU_HELP),
+          flags        = RESET_REQUIRED,
+          option text = STRING_TOKEN(STR_GPU_CU_FACTORY), value = CU_UNLOCK_FACTORY, flags = 0;
+          option text = STRING_TOKEN(STR_GPU_CU_ALL),     value = CU_UNLOCK_ALL,     flags = 0;
+          option text = STRING_TOKEN(STR_GPU_CU_CUSTOM),  value = CU_UNLOCK_CUSTOM,  flags = 0;
+        endoneof;
+      endif;
+
+      grayoutif NOT ideqval MeiMeiDXEv3CuVar.Mode == CU_UNLOCK_CUSTOM;
+        goto 4,
+          prompt = STRING_TOKEN(STR_CU_GOTO_PROMPT),
+          help   = STRING_TOKEN(STR_CU_GOTO_HELP);
       endif;
 
     // Core options
@@ -725,6 +761,156 @@ formset
         maximum = 1300,
         step    = 5,
       endnumeric;
+
+  endform;
+
+  // Submenu: Individual WGPs (custom CU selection; each WGP = two CUs)
+  form formid = 4,
+    title = STRING_TOKEN(STR_SUBMENU_WGP_TITLE);
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_WGP_INTRO);
+
+      subtitle
+      text  = STRING_TOKEN(STR_SUBTITLE_BANK0_TEXT),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[0],
+        prompt       = STRING_TOKEN(STR_WGP_0),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[1],
+        prompt       = STRING_TOKEN(STR_WGP_1),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[2],
+        prompt       = STRING_TOKEN(STR_WGP_2),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[3],
+        prompt       = STRING_TOKEN(STR_WGP_3),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[4],
+        prompt       = STRING_TOKEN(STR_WGP_4),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      subtitle
+      text  = STRING_TOKEN(STR_SUBTITLE_BANK1_TEXT),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[5],
+        prompt       = STRING_TOKEN(STR_WGP_5),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[6],
+        prompt       = STRING_TOKEN(STR_WGP_6),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[7],
+        prompt       = STRING_TOKEN(STR_WGP_7),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[8],
+        prompt       = STRING_TOKEN(STR_WGP_8),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[9],
+        prompt       = STRING_TOKEN(STR_WGP_9),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      subtitle
+      text  = STRING_TOKEN(STR_SUBTITLE_BANK2_TEXT),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[10],
+        prompt       = STRING_TOKEN(STR_WGP_10),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[11],
+        prompt       = STRING_TOKEN(STR_WGP_11),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[12],
+        prompt       = STRING_TOKEN(STR_WGP_12),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[13],
+        prompt       = STRING_TOKEN(STR_WGP_13),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[14],
+        prompt       = STRING_TOKEN(STR_WGP_14),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      subtitle
+      text  = STRING_TOKEN(STR_SUBTITLE_BANK3_TEXT),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[15],
+        prompt       = STRING_TOKEN(STR_WGP_15),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[16],
+        prompt       = STRING_TOKEN(STR_WGP_16),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[17],
+        prompt       = STRING_TOKEN(STR_WGP_17),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[18],
+        prompt       = STRING_TOKEN(STR_WGP_18),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      checkbox varid = MeiMeiDXEv3CuVar.Wgp[19],
+        prompt       = STRING_TOKEN(STR_WGP_19),
+        help         = STRING_TOKEN(STR_WGP_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
 
   endform;
 endformset;

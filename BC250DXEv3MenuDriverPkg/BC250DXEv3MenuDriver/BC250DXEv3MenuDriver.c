@@ -775,6 +775,9 @@ ExtractConfig (
     } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, SMU_GOVERNOR_VAR_NAME)) {
       VarName    = SMU_GOVERNOR_VAR_NAME;
       BufferSize = sizeof (SMU_GOVERNOR_CONFIG);
+    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3CuVar")) {
+      VarName    = L"MeiMeiDXEv3CuVar";
+      BufferSize = sizeof (CU_CONFIG);
     } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3CoreVar")) {
       VarName    = L"MeiMeiDXEv3CoreVar";
       BufferSize = sizeof (CORE_CONFIG);
@@ -875,6 +878,9 @@ RouteConfig (
   } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, SMU_GOVERNOR_VAR_NAME)) {
     VarName    = SMU_GOVERNOR_VAR_NAME;
     BufferSize = sizeof (SMU_GOVERNOR_CONFIG);
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3CuVar")) {
+    VarName    = L"MeiMeiDXEv3CuVar";
+    BufferSize = sizeof (CU_CONFIG);
   } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3CoreVar")) {
     VarName    = L"MeiMeiDXEv3CoreVar";
     BufferSize = sizeof (CORE_CONFIG);
@@ -947,6 +953,7 @@ Bc250DxeV3MenuDriverEntryPoint (
   SMU_PATCH_CONFIG    SmuPatchConfig;
   SMU_GOVERNOR_CONFIG SmuGovernorConfig;
   CORE_CONFIG         CoreConfig;
+  CU_CONFIG           CuConfig;
   UINTN        Index;
   EFI_GUID     HiiGuid = gEfiCallerIdGuid;
 
@@ -999,6 +1006,15 @@ Bc250DxeV3MenuDriverEntryPoint (
     SmuGovernorConfig.GovernorFreqVoltPoints[Index] = mDefaultSmuSafePoints[Index];
   }
   Status = InitVariableIfMissing (SMU_GOVERNOR_VAR_NAME, &gMenuConfigGuid, &SmuGovernorConfig, sizeof (SMU_GOVERNOR_CONFIG));
+  if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
+    return Status;
+  }
+
+  // Initialize the GPU CU unlock variable if it does not exist (Factory default).
+  ZeroMem (&CuConfig, sizeof (CU_CONFIG));
+  CuConfig.Version = CU_CONFIG_SCHEMA;
+  CuConfig.Mode    = CU_UNLOCK_FACTORY;
+  Status = InitVariableIfMissing (L"MeiMeiDXEv3CuVar", &gMenuConfigGuid, &CuConfig, sizeof (CU_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }

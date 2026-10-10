@@ -86,4 +86,22 @@ typedef struct {
   SMU_SAFE_POINT  GovernorFreqVoltPoints[SMU_SAFE_POINT_COUNT];
 } SMU_GOVERNOR_CONFIG;
 
+//
+// GPU CU unlock configuration. Mode selects Factory / Unlock all / Custom;
+// in Custom mode Wgp[20] selects the active WGPs (each WGP supplies two CUs,
+// index = bank*5 + wgp). Version must be CU_CONFIG_SCHEMA.
+//
+#define CU_CONFIG_SCHEMA  1
+
+#define CU_UNLOCK_FACTORY  0
+#define CU_UNLOCK_ALL      1
+#define CU_UNLOCK_CUSTOM   2
+
+typedef struct {
+  UINT8  Version;
+  UINT8  Mode;
+  UINT8  Reserved[2];
+  UINT8  Wgp[20];
+} CU_CONFIG;
+
 #endif // __BC250DXEV3MENUDRIVER_H__
