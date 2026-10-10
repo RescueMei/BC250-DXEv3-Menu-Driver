@@ -27,6 +27,16 @@ formset
     name      = MeiMeiDXEv3SmuPatchVar,
     guid      = MENU_CONFIG_GUID;
 
+  efivarstore SMU_GOVERNOR_ENABLE_CONFIG,
+    attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+    name      = MeiMeiDXEv3SmuGovernorEnable,
+    guid      = MENU_CONFIG_GUID;
+
+  efivarstore SMU_GOVERNOR_CONFIG,
+    attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+    name      = MeiMeiDXEv3SmuGovernorConfig,
+    guid      = MENU_CONFIG_GUID;
+
   efivarstore CORE_CONFIG,
     attribute = EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
     name      = MeiMeiDXEv3CoreVar,
@@ -73,6 +83,30 @@ formset
           help         = STRING_TOKEN(STR_SMU_REPORTING_PATCH_HELP),
           flags        = RESET_REQUIRED,
         endcheckbox;
+      endif;
+
+    // GPU options
+      subtitle
+      text         = STRING_TOKEN(STR_SUBTITLE_GPU_TEXT),
+      flags        = 0,
+    endsubtitle;
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
+      grayoutif NOT ideqval MeiMeiDXEv3SmuUnlockVar.SmuUnlock == 1;
+        checkbox varid = MeiMeiDXEv3SmuGovernorEnable.SmuGovernor,
+          prompt       = STRING_TOKEN(STR_SMU_GOVERNOR_PROMPT),
+          help         = STRING_TOKEN(STR_SMU_GOVERNOR_HELP),
+          flags        = RESET_REQUIRED,
+        endcheckbox;
+      endif;
+
+      grayoutif NOT ideqval MeiMeiDXEv3SmuGovernorEnable.SmuGovernor == 1;
+        goto 3,
+          prompt = STRING_TOKEN(STR_SAFEPOINTS_GOTO_PROMPT),
+          help   = STRING_TOKEN(STR_SAFEPOINTS_GOTO_HELP);
       endif;
 
     // Core options
@@ -231,6 +265,488 @@ formset
         flags      = INTERACTIVE,
         config     = STRING_TOKEN(STR_EMPTY),
       endaction;
+
+  endform;
+
+  // Submenu: In-SMU Governor Options (frequency window + V(f) safe points)
+  form formid = 3,
+    title = STRING_TOKEN(STR_SAFEPOINTS_TITLE);
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_SAFEPOINTS_INTRO);
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.MinFrequency,
+        prompt  = STRING_TOKEN(STR_MIN_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_MIN_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.MaxFrequency,
+        prompt  = STRING_TOKEN(STR_MAX_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_MAX_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
+    // Freq Volt 1
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_1_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[0].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[0].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[0].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 2
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_2_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[1].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[1].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[1].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 3
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_3_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[2].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[2].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[2].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 4
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_4_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[3].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[3].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[3].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 5
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_5_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[4].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[4].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[4].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 6
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_6_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[5].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[5].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[5].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 7
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_7_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[6].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[6].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[6].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 8
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_8_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[7].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[7].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[7].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 9
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_9_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[8].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[8].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[8].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 10
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_10_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[9].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[9].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[9].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 11
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_11_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[10].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[10].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[10].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 12
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_12_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[11].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[11].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[11].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 13
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_13_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[12].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[12].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[12].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 14
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_14_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[13].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[13].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[13].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
+
+    // Safe Point 15
+      subtitle
+      text  = STRING_TOKEN(STR_SAFEPOINT_15_TITLE),
+      flags = 0,
+    endsubtitle;
+
+      checkbox varid = MeiMeiDXEv3SmuGovernorConfig.Point[14].Enable,
+        prompt       = STRING_TOKEN(STR_SAFEPOINT_ENABLE_PROMPT),
+        help         = STRING_TOKEN(STR_SAFEPOINT_ENABLE_HELP),
+        flags        = RESET_REQUIRED,
+      endcheckbox;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[14].Frequency,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_FREQ_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_FREQ_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 300,
+        maximum = 3000,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorConfig.Point[14].Voltage,
+        prompt  = STRING_TOKEN(STR_SAFEPOINT_VOLT_PROMPT),
+        help    = STRING_TOKEN(STR_SAFEPOINT_VOLT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 600,
+        maximum = 1300,
+        step    = 5,
+      endnumeric;
 
   endform;
 endformset;

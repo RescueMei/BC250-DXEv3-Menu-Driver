@@ -7,6 +7,7 @@
 
 #string STR_SUBTITLE_PATCH_TEXT      #language en-US "Patch Options"
 #string STR_SUBTITLE_SMU_TEXT        #language en-US "SMU Options"
+#string STR_SUBTITLE_GPU_TEXT        #language en-US "GPU Options"
 #string STR_SUBTITLE_CORE_TEXT       #language en-US "Core Options"
 
 #string STR_ACPI_PATCH_PROMPT        #language en-US "ACPI Patch"
@@ -17,6 +18,9 @@
 
 #string STR_SMU_REPORTING_PATCH_PROMPT #language en-US "SMU Reporting Patch"
 #string STR_SMU_REPORTING_PATCH_HELP   #language en-US "Patches SMU for 8 Core Reporting"
+
+#string STR_SMU_GOVERNOR_PROMPT       #language en-US "SMU Governor"
+#string STR_SMU_GOVERNOR_HELP         #language en-US "Inject the in-SMU GPU governor payload. Requires SMU Unlock."
 
 #string STR_CORE_UNLOCK_PROMPT       #language en-US "Core Unlock"
 #string STR_CORE_UNLOCK_HELP         #language en-US "Disabled - Disable the core unlock and use the factory core mask. Enabled - Enable the unlock for all cores. Custom = Enable using cores set in Individual Core Options."
@@ -68,3 +72,40 @@
 #string STR_RESTORE_FACTORY_PROMPT       #language en-US "Restore Factory Core Mask"
 #string STR_RESTORE_FACTORY_HELP         #language en-US "Reset the selected cores to the learned factory core mask."
 #string STR_RESTORE_FACTORY_CONFIRM_TEXT #language en-US "Restore the core selection to the factory core mask?\nThis replaces the currently selected cores.\n\nSelect Yes to restore, or No to cancel."
+
+#string STR_SAFEPOINTS_GOTO_PROMPT       #language en-US "In-SMU Governor Options"
+#string STR_SAFEPOINTS_GOTO_HELP         #language en-US "Configure the frequency window and the frequency/voltage safe-point curve used by the in-SMU governor."
+
+#string STR_SAFEPOINTS_TITLE             #language en-US "In-SMU Governor Options"
+#string STR_SAFEPOINTS_INTRO             #language en-US "Frequency/voltage safe points for the SMU governor. Enable the points to use; disabled points are ignored. Requires SMU Unlock."
+
+#string STR_SAFEPOINT_ENABLE_PROMPT      #language en-US "Enable"
+#string STR_SAFEPOINT_ENABLE_HELP        #language en-US "Use this safe point. Disabled points are ignored by the governor."
+
+#string STR_SAFEPOINT_FREQ_PROMPT        #language en-US "Frequency (MHz)"
+#string STR_SAFEPOINT_FREQ_HELP          #language en-US "Target GFX frequency in MHz for this safe point."
+
+#string STR_SAFEPOINT_VOLT_PROMPT        #language en-US "Voltage (mV)"
+#string STR_SAFEPOINT_VOLT_HELP          #language en-US "Rail voltage in millivolts for this safe point."
+
+#string STR_MIN_FREQ_PROMPT              #language en-US "Min Freq (MHz)"
+#string STR_MIN_FREQ_HELP                #language en-US "Lower bound of the governor's operating frequency window, in MHz."
+
+#string STR_MAX_FREQ_PROMPT              #language en-US "Max Freq (MHz)"
+#string STR_MAX_FREQ_HELP                #language en-US "Upper bound of the governor's operating frequency window, in MHz."
+
+#string STR_SAFEPOINT_1_TITLE            #language en-US "Freq Volt 1"
+#string STR_SAFEPOINT_2_TITLE            #language en-US "Freq Volt 2"
+#string STR_SAFEPOINT_3_TITLE            #language en-US "Freq Volt 3"
+#string STR_SAFEPOINT_4_TITLE            #language en-US "Freq Volt 4"
+#string STR_SAFEPOINT_5_TITLE            #language en-US "Freq Volt 5"
+#string STR_SAFEPOINT_6_TITLE            #language en-US "Freq Volt 6"
+#string STR_SAFEPOINT_7_TITLE            #language en-US "Freq Volt 7"
+#string STR_SAFEPOINT_8_TITLE            #language en-US "Freq Volt 8"
+#string STR_SAFEPOINT_9_TITLE            #language en-US "Freq Volt 9"
+#string STR_SAFEPOINT_10_TITLE           #language en-US "Freq Volt 10"
+#string STR_SAFEPOINT_11_TITLE           #language en-US "Freq Volt 11"
+#string STR_SAFEPOINT_12_TITLE           #language en-US "Freq Volt 12"
+#string STR_SAFEPOINT_13_TITLE           #language en-US "Freq Volt 13"
+#string STR_SAFEPOINT_14_TITLE           #language en-US "Freq Volt 14"
+#string STR_SAFEPOINT_15_TITLE           #language en-US "Freq Volt 15"

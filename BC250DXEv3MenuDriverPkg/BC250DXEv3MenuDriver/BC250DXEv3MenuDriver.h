@@ -62,4 +62,36 @@ typedef struct {
   UINT8  Core7;
 } CORE_CONFIG;
 
+//
+// SMU governor variables. The enable is a separate fail-closed flag (the
+// governor driver reads its first byte); the config holds the operating
+// frequency window and the V(f) safe-point curve that the governor maps onto
+// the SMU AVFS tables at boot. Each of the 15 points may be enabled
+// independently; disabled points are ignored.
+//
+#define SMU_GOVERNOR_ENABLE_VAR_NAME  L"MeiMeiDXEv3SmuGovernorEnable"
+#define SMU_GOVERNOR_CONFIG_VAR_NAME  L"MeiMeiDXEv3SmuGovernorConfig"
+
+#define SMU_SAFE_POINT_COUNT    15
+#define SMU_SAFE_POINTS_SCHEMA  1
+
+typedef struct {
+  UINT8  SmuGovernor;   // 0 = disabled, non-zero = enabled
+} SMU_GOVERNOR_ENABLE_CONFIG;
+
+typedef struct {
+  UINT8   Enable;      // 0 = ignore this point, non-zero = use it
+  UINT8   Reserved;    // explicit padding so the layout is compiler-independent
+  UINT16  Frequency;   // MHz
+  UINT16  Voltage;     // mV
+} SMU_SAFE_POINT;
+
+typedef struct {
+  UINT16          Schema;          // SMU_SAFE_POINTS_SCHEMA
+  UINT16          Count;           // number of valid Point entries
+  UINT16          MinFrequency;    // MHz
+  UINT16          MaxFrequency;    // MHz
+  SMU_SAFE_POINT  Point[SMU_SAFE_POINT_COUNT];
+} SMU_GOVERNOR_CONFIG;
+
 #endif // __BC250DXEV3MENUDRIVER_H__

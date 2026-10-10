@@ -55,6 +55,32 @@ STATIC HII_VENDOR_DEVICE_PATH  mHiiVendorDevicePath = {
 };
 
 //
+// Default SMU governor safe-point curve (frequency MHz / voltage mV). Mirrors
+// the reference BC-250 safe-point span; the points through the 2000 MHz
+// default maximum are enabled, the higher (aggressive) points are disabled.
+//
+STATIC CONST SMU_SAFE_POINT  mDefaultSmuSafePoints[SMU_SAFE_POINT_COUNT] = {
+  { 1, 0,  400,  700 },
+  { 1, 0, 1175,  700 },
+  { 1, 0, 1400,  750 },
+  { 1, 0, 1600,  800 },
+  { 1, 0, 1700,  850 },
+  { 1, 0, 1850,  900 },
+  { 1, 0, 2000,  950 },
+  { 0, 0, 2050,  975 },
+  { 0, 0, 2100, 1000 },
+  { 0, 0, 2125, 1015 },
+  { 0, 0, 2150, 1025 },
+  { 0, 0, 2200, 1045 },
+  { 0, 0, 2230, 1075 },
+  { 0, 0, 2300, 1100 },
+  { 0, 0, 2350, 1125 },
+};
+
+#define SMU_GOVERNOR_MIN_FREQ_DEFAULT  400
+#define SMU_GOVERNOR_MAX_FREQ_DEFAULT  2000
+
+//
 // Forward declarations for the config access protocol implementation.
 //
 EFI_STATUS
@@ -748,6 +774,12 @@ ExtractConfig (
     } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3SmuPatchVar")) {
       VarName    = L"MeiMeiDXEv3SmuPatchVar";
       BufferSize = sizeof (SMU_PATCH_CONFIG);
+    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, SMU_GOVERNOR_ENABLE_VAR_NAME)) {
+      VarName    = SMU_GOVERNOR_ENABLE_VAR_NAME;
+      BufferSize = sizeof (SMU_GOVERNOR_ENABLE_CONFIG);
+    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, SMU_GOVERNOR_CONFIG_VAR_NAME)) {
+      VarName    = SMU_GOVERNOR_CONFIG_VAR_NAME;
+      BufferSize = sizeof (SMU_GOVERNOR_CONFIG);
     } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3CoreVar")) {
       VarName    = L"MeiMeiDXEv3CoreVar";
       BufferSize = sizeof (CORE_CONFIG);
@@ -845,6 +877,12 @@ RouteConfig (
   } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3SmuPatchVar")) {
     VarName    = L"MeiMeiDXEv3SmuPatchVar";
     BufferSize = sizeof (SMU_PATCH_CONFIG);
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, SMU_GOVERNOR_ENABLE_VAR_NAME)) {
+    VarName    = SMU_GOVERNOR_ENABLE_VAR_NAME;
+    BufferSize = sizeof (SMU_GOVERNOR_ENABLE_CONFIG);
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, SMU_GOVERNOR_CONFIG_VAR_NAME)) {
+    VarName    = SMU_GOVERNOR_CONFIG_VAR_NAME;
+    BufferSize = sizeof (SMU_GOVERNOR_CONFIG);
   } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3CoreVar")) {
     VarName    = L"MeiMeiDXEv3CoreVar";
     BufferSize = sizeof (CORE_CONFIG);
@@ -915,7 +953,10 @@ Bc250DxeV3MenuDriverEntryPoint (
   ACPI_CONFIG         AcpiConfig;
   SMU_UNLOCK_CONFIG   SmuUnlockConfig;
   SMU_PATCH_CONFIG    SmuPatchConfig;
+  SMU_GOVERNOR_ENABLE_CONFIG SmuGovernorEnableConfig;
+  SMU_GOVERNOR_CONFIG SmuGovernorConfig;
   CORE_CONFIG         CoreConfig;
+  UINTN        Index;
   EFI_GUID     HiiGuid = gEfiCallerIdGuid;
 
   // Workaround to avoid problems with LTO in the compiler
@@ -955,6 +996,28 @@ Bc250DxeV3MenuDriverEntryPoint (
   CoreConfig.Core6 = 0;
   CoreConfig.Core7 = 0;
   Status = InitVariableIfMissing (L"MeiMeiDXEv3CoreVar", &gMenuConfigGuid, &CoreConfig, sizeof (CORE_CONFIG));
+  if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
+    return Status;
+  }
+
+  // Initialize the SMU governor enable variable if it does not exist
+  // (fail-closed: disabled by default).
+  SmuGovernorEnableConfig.SmuGovernor = 0;
+  Status = InitVariableIfMissing (SMU_GOVERNOR_ENABLE_VAR_NAME, &gMenuConfigGuid, &SmuGovernorEnableConfig, sizeof (SMU_GOVERNOR_ENABLE_CONFIG));
+  if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
+    return Status;
+  }
+
+  // Initialize the SMU governor configuration variable if it does not exist.
+  ZeroMem (&SmuGovernorConfig, sizeof (SMU_GOVERNOR_CONFIG));
+  SmuGovernorConfig.Schema       = SMU_SAFE_POINTS_SCHEMA;
+  SmuGovernorConfig.Count        = SMU_SAFE_POINT_COUNT;
+  SmuGovernorConfig.MinFrequency = SMU_GOVERNOR_MIN_FREQ_DEFAULT;
+  SmuGovernorConfig.MaxFrequency = SMU_GOVERNOR_MAX_FREQ_DEFAULT;
+  for (Index = 0; Index < SMU_SAFE_POINT_COUNT; Index++) {
+    SmuGovernorConfig.Point[Index] = mDefaultSmuSafePoints[Index];
+  }
+  Status = InitVariableIfMissing (SMU_GOVERNOR_CONFIG_VAR_NAME, &gMenuConfigGuid, &SmuGovernorConfig, sizeof (SMU_GOVERNOR_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
