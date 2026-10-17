@@ -60,21 +60,21 @@ STATIC HII_VENDOR_DEVICE_PATH  mHiiVendorDevicePath = {
 // default maximum are enabled, the higher (aggressive) points are disabled.
 //
 STATIC CONST SMU_SAFE_POINT  mDefaultSmuSafePoints[SMU_SAFE_POINT_COUNT] = {
-  { 1, 0,  400,  700 },
+  { 0, 0,  350,  700 },   // below the default window: present, disabled
+  { 1, 0,  500,  700 },
   { 1, 0, 1175,  700 },
   { 1, 0, 1400,  750 },
   { 1, 0, 1600,  800 },
   { 1, 0, 1700,  850 },
-  { 1, 0, 1850,  900 },
-  { 1, 0, 2000,  950 },
+  { 1, 0, 1800,  875 },
+  { 0, 0, 1850,  900 },   // above the default window: present, disabled
+  { 0, 0, 2000,  950 },
   { 0, 0, 2050,  975 },
   { 0, 0, 2100, 1000 },
   { 0, 0, 2125, 1015 },
-  { 0, 0, 2150, 1025 },
-  { 0, 0, 2200, 1045 },
-  { 0, 0, 2230, 1075 },
-  { 0, 0, 2300, 1100 },
-  { 0, 0, 2350, 1125 },
+  { 0, 0, 2150, 1030 },
+  { 0, 0, 2200, 1050 },
+  { 0, 0,    0,    0 },   // spare
 };
 
 
