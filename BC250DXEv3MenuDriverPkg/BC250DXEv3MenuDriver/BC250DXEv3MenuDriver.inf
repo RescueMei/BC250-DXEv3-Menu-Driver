@@ -37,6 +37,7 @@
   gEfiDevicePathProtocolGuid
   gEfiGraphicsOutputProtocolGuid
   gMeiMeiDXEv3CoreUnlockProtocolGuid
+  gMeiMeiDXEv3CuUnlockProtocolGuid
 
 [Depex]
   gEfiHiiDatabaseProtocolGuid AND gEfiHiiConfigRoutingProtocolGuid

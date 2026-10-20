@@ -30,6 +30,38 @@
 #define CORES_RESTORE_FACTORY_QUESTION_ID  0x5001
 
 //
+// Question IDs of the WGP[0..19] checkboxes (form 4). The VFR references
+// these with questionref() to show whether every bank has at least one WGP
+// selected, matching the CU driver's custom-profile rule.
+//
+#define WGP0_QUESTION_ID   0x1200
+#define WGP1_QUESTION_ID   0x1201
+#define WGP2_QUESTION_ID   0x1202
+#define WGP3_QUESTION_ID   0x1203
+#define WGP4_QUESTION_ID   0x1204
+#define WGP5_QUESTION_ID   0x1205
+#define WGP6_QUESTION_ID   0x1206
+#define WGP7_QUESTION_ID   0x1207
+#define WGP8_QUESTION_ID   0x1208
+#define WGP9_QUESTION_ID   0x1209
+#define WGP10_QUESTION_ID  0x120A
+#define WGP11_QUESTION_ID  0x120B
+#define WGP12_QUESTION_ID  0x120C
+#define WGP13_QUESTION_ID  0x120D
+#define WGP14_QUESTION_ID  0x120E
+#define WGP15_QUESTION_ID  0x120F
+#define WGP16_QUESTION_ID  0x1210
+#define WGP17_QUESTION_ID  0x1211
+#define WGP18_QUESTION_ID  0x1212
+#define WGP19_QUESTION_ID  0x1213
+
+//
+// Question ID of the "Restore Factory CU Mask" action button in the Individual
+// WGPs submenu (form 4). Not a stored setting; matched in the Callback.
+//
+#define CU_RESTORE_FACTORY_QUESTION_ID     0x5002
+
+//
 // ACPI configuration variable
 //
 typedef struct {

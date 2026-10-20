@@ -14,6 +14,7 @@
 #include <Protocol/HiiConfigAccess.h>
 #include <Protocol/HiiPopup.h>
 #include <MeiMeiDXEv3CoreUnlockProtocol.h>
+#include <MeiMeiDXEv3CuUnlockProtocol.h>
 #include "BC250DXEv3MenuDriver.h"
 
 extern UINT8 BC250DXEv3MenuDriverMenuBin[];
@@ -610,6 +611,90 @@ ResetToFactoryMask (VOID)
 }
 
 /**
+  Reset the currently selected WGP toggles to the learned factory CU mask,
+  obtained through the MEIMEIDXEV3_CU_UNLOCK_PROTOCOL.
+
+  The CU driver exposes four per-bank 5-bit WGP masks decoded from its captured
+  factory baseline. Build a Custom CU profile from those bits so the menu shows
+  the factory selection and the user can adjust it.
+
+  @retval EFI_STATUS  Result of the reset operation. Conditions that should be
+                      reported to the user (CU-unlock driver missing, factory
+                      baseline not yet learned) are shown as popups and return
+                      EFI_SUCCESS.
+**/
+STATIC
+EFI_STATUS
+ResetToFactoryCuMask (VOID)
+{
+  EFI_STATUS                       Status;
+  MEIMEIDXEV3_CU_UNLOCK_PROTOCOL   *Protocol;
+  UINT32                           FactoryMasks[4];
+  UINTN                            Index;
+  CU_CONFIG                        CuConfig;
+
+  //
+  // The factory baseline is owned by the BC250-DXEv3 CU Unlock driver. Keep
+  // the menu usable when that driver is not present.
+  //
+  Status = gBS->LocateProtocol (&gMeiMeiDXEv3CuUnlockProtocolGuid, NULL, (VOID **)&Protocol);
+  if (EFI_ERROR (Status) || (Protocol == NULL) || (Protocol->GetFactoryMask == NULL)) {
+    DEBUG ((DEBUG_ERROR, "BC250DXEv3MenuDriver: CU unlock protocol unavailable (Status=%r, Protocol=%p)\n", Status, Protocol));
+    ShowPopup (EfiHiiPopupStyleWarning, EfiHiiPopupTypeOk, STRING_TOKEN (STR_CU_RESTORE_NO_PROTOCOL_TEXT));
+    return EFI_SUCCESS;
+  }
+
+  Status = Protocol->GetFactoryMask (Protocol, FactoryMasks);
+  if (EFI_ERROR (Status)) {
+    //
+    // EFI_NOT_FOUND: the one-shot cold-boot learning cycle has not completed.
+    //
+    DEBUG ((DEBUG_ERROR, "BC250DXEv3MenuDriver: GetFactoryMask failed: %r\n", Status));
+    ShowPopup (EfiHiiPopupStyleWarning, EfiHiiPopupTypeOk, STRING_TOKEN (STR_CU_RESTORE_NO_FACTORY_MASK_TEXT));
+    return EFI_SUCCESS;
+  }
+
+  //
+  // Build the per-WGP toggles from the factory masks. Each bank owns five
+  // consecutive WGP entries.
+  //
+  ZeroMem (&CuConfig, sizeof (CU_CONFIG));
+  CuConfig.Version = CU_CONFIG_SCHEMA;
+  CuConfig.Mode    = CU_UNLOCK_CUSTOM;
+  for (Index = 0; Index < 20; Index++) {
+    CuConfig.Wgp[Index] = (UINT8)((FactoryMasks[Index / 5] >> (Index % 5)) & 1U);
+  }
+
+  //
+  // Persist immediately and keep the browser's copy of the varstore in sync.
+  //
+  Status = gRT->SetVariable (
+                  L"MeiMeiDXEv3CuVar",
+                  &gMenuConfigGuid,
+                  VARIABLE_ATTRIBUTES,
+                  sizeof (CU_CONFIG),
+                  &CuConfig
+                  );
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "BC250DXEv3MenuDriver: failed to reset CU config: %r\n", Status));
+    return Status;
+  }
+
+  HiiSetBrowserData (
+    &gMenuConfigGuid,
+    L"MeiMeiDXEv3CuVar",
+    sizeof (CU_CONFIG),
+    (UINT8 *)&CuConfig,
+    NULL
+    );
+
+  DEBUG ((DEBUG_INFO, "BC250DXEv3MenuDriver: restored CU mask to factory %08X %08X %08X %08X\n",
+          FactoryMasks[0], FactoryMasks[1], FactoryMasks[2], FactoryMasks[3]));
+
+  return EFI_SUCCESS;
+}
+
+/**
   Config access callback. Handles the "Restore Factory Core Mask" action
   button in the Individual Core Options submenu.
 
@@ -681,6 +766,22 @@ Callback (
         EfiHiiPopupSelectionYes)
     {
       Status = ResetToFactoryMask ();
+      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_APPLY;
+    } else {
+      Status = EFI_SUCCESS;
+    }
+
+    return Status;
+  }
+
+  //
+  // CU restore action: same confirmation/refresh flow as the core restore.
+  //
+  if (QuestionId == CU_RESTORE_FACTORY_QUESTION_ID) {
+    if (ShowPopup (EfiHiiPopupStyleWarning, EfiHiiPopupTypeYesNo, STRING_TOKEN (STR_CU_RESTORE_FACTORY_CONFIRM_TEXT)) ==
+        EfiHiiPopupSelectionYes)
+    {
+      Status = ResetToFactoryCuMask ();
       *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_APPLY;
     } else {
       Status = EFI_SUCCESS;

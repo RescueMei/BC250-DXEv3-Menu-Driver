@@ -73,6 +73,19 @@
 #string STR_RESTORE_FACTORY_HELP         #language en-US "Reset the selected cores to the learned factory core mask."
 #string STR_RESTORE_FACTORY_CONFIRM_TEXT #language en-US "Restore the core selection to the factory core mask?\nThis replaces the currently selected cores.\n\nSelect Yes to restore, or No to cancel."
 
+#string STR_CU_VALID_TITLE                #language en-US "Valid CU Configuration"
+
+#string STR_CU_INVALID_TITLE              #language en-US "Invalid CU Configuration"
+#string STR_CU_INVALID_TEXT               #language en-US "Each of the four banks must keep at least one WGP enabled in Custom mode."
+
+#string STR_CU_RESTORE_NO_PROTOCOL_TEXT   #language en-US "The CU unlock driver is not available.\nThe WGP selection cannot be reset to the factory CU mask."
+
+#string STR_CU_RESTORE_NO_FACTORY_MASK_TEXT #language en-US "The factory CU mask has not been learned yet\n(one-time cold boot pending).\nThe WGP selection was not changed."
+
+#string STR_CU_RESTORE_FACTORY_PROMPT     #language en-US "Restore Factory CU Mask"
+#string STR_CU_RESTORE_FACTORY_HELP       #language en-US "Reset the selected WGPs to the learned factory CU mask."
+#string STR_CU_RESTORE_FACTORY_CONFIRM_TEXT #language en-US "Restore the WGP selection to the factory CU mask?\nThis replaces the currently selected WGPs.\n\nSelect Yes to restore, or No to cancel."
+
 #string STR_SAFEPOINTS_GOTO_PROMPT       #language en-US "In-SMU Governor Options"
 #string STR_SAFEPOINTS_GOTO_HELP         #language en-US "Configure the frequency window and the frequency/voltage safe-point curve used by the in-SMU governor."
 

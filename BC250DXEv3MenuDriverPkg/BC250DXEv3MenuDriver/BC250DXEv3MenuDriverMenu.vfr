@@ -778,30 +778,35 @@ formset
     endsubtitle;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[0],
+        questionid   = WGP0_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_0),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[1],
+        questionid   = WGP1_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_1),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[2],
+        questionid   = WGP2_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_2),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[3],
+        questionid   = WGP3_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_3),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[4],
+        questionid   = WGP4_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_4),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
@@ -813,30 +818,35 @@ formset
     endsubtitle;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[5],
+        questionid   = WGP5_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_5),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[6],
+        questionid   = WGP6_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_6),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[7],
+        questionid   = WGP7_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_7),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[8],
+        questionid   = WGP8_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_8),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[9],
+        questionid   = WGP9_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_9),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
@@ -848,30 +858,35 @@ formset
     endsubtitle;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[10],
+        questionid   = WGP10_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_10),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[11],
+        questionid   = WGP11_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_11),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[12],
+        questionid   = WGP12_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_12),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[13],
+        questionid   = WGP13_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_13),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[14],
+        questionid   = WGP14_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_14),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
@@ -883,34 +898,82 @@ formset
     endsubtitle;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[15],
+        questionid   = WGP15_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_15),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[16],
+        questionid   = WGP16_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_16),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[17],
+        questionid   = WGP17_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_17),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[18],
+        questionid   = WGP18_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_18),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
 
       checkbox varid = MeiMeiDXEv3CuVar.Wgp[19],
+        questionid   = WGP19_QUESTION_ID,
         prompt       = STRING_TOKEN(STR_WGP_19),
         help         = STRING_TOKEN(STR_WGP_HELP),
         flags        = RESET_REQUIRED,
       endcheckbox;
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
+    // Live CU configuration status: every bank must keep at least one WGP
+    // selected, matching the CU driver's CustomConfigValid rule.
+      suppressif NOT (((questionref(WGP0_QUESTION_ID) + questionref(WGP1_QUESTION_ID) + questionref(WGP2_QUESTION_ID) + questionref(WGP3_QUESTION_ID) + questionref(WGP4_QUESTION_ID)) >= 1)
+                   AND ((questionref(WGP5_QUESTION_ID) + questionref(WGP6_QUESTION_ID) + questionref(WGP7_QUESTION_ID) + questionref(WGP8_QUESTION_ID) + questionref(WGP9_QUESTION_ID)) >= 1)
+                   AND ((questionref(WGP10_QUESTION_ID) + questionref(WGP11_QUESTION_ID) + questionref(WGP12_QUESTION_ID) + questionref(WGP13_QUESTION_ID) + questionref(WGP14_QUESTION_ID)) >= 1)
+                   AND ((questionref(WGP15_QUESTION_ID) + questionref(WGP16_QUESTION_ID) + questionref(WGP17_QUESTION_ID) + questionref(WGP18_QUESTION_ID) + questionref(WGP19_QUESTION_ID)) >= 1));
+        subtitle
+          text  = STRING_TOKEN(STR_CU_VALID_TITLE),
+          flags = 0,
+        endsubtitle;
+      endif;
+
+      suppressif (((questionref(WGP0_QUESTION_ID) + questionref(WGP1_QUESTION_ID) + questionref(WGP2_QUESTION_ID) + questionref(WGP3_QUESTION_ID) + questionref(WGP4_QUESTION_ID)) >= 1)
+               AND ((questionref(WGP5_QUESTION_ID) + questionref(WGP6_QUESTION_ID) + questionref(WGP7_QUESTION_ID) + questionref(WGP8_QUESTION_ID) + questionref(WGP9_QUESTION_ID)) >= 1)
+               AND ((questionref(WGP10_QUESTION_ID) + questionref(WGP11_QUESTION_ID) + questionref(WGP12_QUESTION_ID) + questionref(WGP13_QUESTION_ID) + questionref(WGP14_QUESTION_ID)) >= 1)
+               AND ((questionref(WGP15_QUESTION_ID) + questionref(WGP16_QUESTION_ID) + questionref(WGP17_QUESTION_ID) + questionref(WGP18_QUESTION_ID) + questionref(WGP19_QUESTION_ID)) >= 1));
+        subtitle
+          text  = STRING_TOKEN(STR_CU_INVALID_TITLE),
+          flags = 0,
+        endsubtitle;
+
+        text
+          help = STRING_TOKEN(STR_EMPTY),
+          text = STRING_TOKEN(STR_CU_INVALID_TEXT);
+      endif;
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_EMPTY);
+
+    // Restore factory CU mask action (a button, not a stored setting)
+      action
+        questionid = CU_RESTORE_FACTORY_QUESTION_ID,
+        prompt     = STRING_TOKEN(STR_CU_RESTORE_FACTORY_PROMPT),
+        help       = STRING_TOKEN(STR_CU_RESTORE_FACTORY_HELP),
+        flags      = INTERACTIVE,
+        config     = STRING_TOKEN(STR_EMPTY),
+      endaction;
 
   endform;
 endformset;

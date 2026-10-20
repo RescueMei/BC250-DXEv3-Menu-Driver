@@ -13,3 +13,9 @@
   #  can LocateProtocol() and depend on it without referencing that package.
   #  Keep this GUID in sync with the Core Unlock driver's .dec.
   gMeiMeiDXEv3CoreUnlockProtocolGuid = { 0x687319be, 0x5bc5, 0x44a7, { 0x8e, 0x60, 0xe5, 0xf1, 0xe5, 0xfd, 0x01, 0x68 } }
+
+  ## Consumed protocol produced by the MeiMeiDXEv3 SMU CU Unlock driver
+  #  (BC250-DXEv3-CU-Unlock). Declared here so this self-contained package
+  #  can LocateProtocol() and read the learned factory WGP masks.
+  #  Keep this GUID in sync with the CU Unlock driver's .dec.
+  gMeiMeiDXEv3CuUnlockProtocolGuid = { 0x3b6f9c24, 0x7d51, 0x4a8e, { 0xb2, 0xc3, 0x1f, 0x0d, 0x6e, 0x8a, 0x44, 0x17 } }
