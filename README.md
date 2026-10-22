@@ -89,8 +89,8 @@ Multi-byte fields are little-endian and naturally aligned; the offsets below are
 | 0 | `SMUGovernorEnable` | Enable the in-SMU GPU governor payload (`0` = disabled, `1` = enabled). Fail-closed: the BC250-DXEv3 SMU Governor driver reads this byte and only injects when it is non-zero. |
 | 1 | `Reserved` | Explicit padding so the layout is compiler-independent. |
 | 2 | `GovernorFreqVoltPoints[15]` | 15 × `SMU_SAFE_POINT` (6 bytes each); see below. |
-| 92 | `PackagePowerLimitW` | Raw package/socket power limit in watts. `0` uses the governor default (230 W). |
-| 94 | `GpuPowerLimitW` | Raw VDDCR_GFX voltage × current power limit in watts. `0` uses the governor default (250 W). |
+| 92 | `PackagePowerLimitW` | Raw package/socket power limit in watts. `0` uses the governor default (250 W). |
+| 94 | `GpuPowerLimitW` | Raw VDDCR_GFX voltage × current power limit in watts. `0` uses the governor default (200 W). |
 
 `SMU_SAFE_POINT` (6 bytes):
 
@@ -123,7 +123,7 @@ Defaults are written only when a variable does not exist yet (first boot / after
 | `MeiMeiDXEv3SmuUnlockVar` | `SmuUnlock = 0` |
 | `MeiMeiDXEv3SmuPatchVar` | `SmuReportingPatch = 0` |
 | `MeiMeiDXEv3CoreVar` | `CoreUnlock = CORE_UNLOCK_DISABLED`, all cores `0` |
-| `MeiMeiDXEv3SmuGovernorVar` | `SMUGovernorEnable = 0` (disabled), `PackagePowerLimitW = 230`, `GpuPowerLimitW = 250`, and the 15 points in the table below (the governor derives its Min/Max from the enabled points). |
+| `MeiMeiDXEv3SmuGovernorVar` | `SMUGovernorEnable = 0` (disabled), `PackagePowerLimitW = 250`, `GpuPowerLimitW = 200`, and the 15 points in the table below (the governor derives its Min/Max from the enabled points). |
 
 Default safe points (`Frequency` MHz / `Voltage` mV / `Enable`):
 
