@@ -1103,6 +1103,8 @@ Bc250DxeV3MenuDriverEntryPoint (
   // Fail-closed: SMUGovernorEnable defaults to 0.
   ZeroMem (&SmuGovernorConfig, sizeof (SMU_GOVERNOR_CONFIG));
   SmuGovernorConfig.SMUGovernorEnable = 0;
+  SmuGovernorConfig.PackagePowerLimitW = 230;
+  SmuGovernorConfig.GpuPowerLimitW = 250;
   for (Index = 0; Index < SMU_SAFE_POINT_COUNT; Index++) {
     SmuGovernorConfig.GovernorFreqVoltPoints[Index] = mDefaultSmuSafePoints[Index];
   }

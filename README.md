@@ -21,7 +21,7 @@ Every option lives in the single formset **"MeiMeiDXEv3 Menu"** (class `4`). Opt
 The two submenus are separate forms:
 
 - **Individual Core Options** — the CCX0/CCX1 per-core toggles, a live valid/invalid status block, and the *Restore Factory Core Mask* action.
-- **In-SMU Governor Options** — 15 *Freq Volt* entries, each with an enable toggle plus a frequency (MHz) and voltage (mV). The governor derives its clock window (Min/Max) from the enabled points; there are no separate Min/Max fields.
+- **In-SMU Governor Options** — package and GPU power limits, plus 15 *Freq Volt* entries, each with an enable toggle plus a frequency (MHz) and voltage (mV). The governor derives its clock window (Min/Max) from the enabled points; there are no separate Min/Max fields.
 
 All option questions are marked `RESET_REQUIRED`, so the setup browser offers/requires a system reset before exiting setup whenever any option is changed.
 
@@ -35,7 +35,7 @@ The menu front-end (VFR) stores settings in five separate non-volatile UEFI vari
 | `MeiMeiDXEv3SmuUnlockVar` | `SMU_UNLOCK_CONFIG` | 1 byte | `SmuUnlock` |
 | `MeiMeiDXEv3SmuPatchVar` | `SMU_PATCH_CONFIG` | 1 byte | `SmuReportingPatch` |
 | `MeiMeiDXEv3CoreVar` | `CORE_CONFIG` | 9 bytes | `CoreUnlock`, `Core0`–`Core7` |
-| `MeiMeiDXEv3SmuGovernorVar` | `SMU_GOVERNOR_CONFIG` | 92 bytes | `SMUGovernorEnable`, `GovernorFreqVoltPoints[15]` |
+| `MeiMeiDXEv3SmuGovernorVar` | `SMU_GOVERNOR_CONFIG` | 96 bytes | `SMUGovernorEnable`, `GovernorFreqVoltPoints[15]`, `PackagePowerLimitW`, `GpuPowerLimitW` |
 
 Shared properties:
 
@@ -82,13 +82,15 @@ Multi-byte fields are little-endian and naturally aligned; the offsets below are
 | 7 | `Core6` | Enable Core 6 (`0` = disabled, `1` = enabled). |
 | 8 | `Core7` | Enable Core 7 (`0` = disabled, `1` = enabled). |
 
-### SMU_GOVERNOR_CONFIG (`MeiMeiDXEv3SmuGovernorVar`, 92 bytes)
+### SMU_GOVERNOR_CONFIG (`MeiMeiDXEv3SmuGovernorVar`, 96 bytes)
 
 | Offset | Field | Description |
 | --- | --- | --- |
 | 0 | `SMUGovernorEnable` | Enable the in-SMU GPU governor payload (`0` = disabled, `1` = enabled). Fail-closed: the BC250-DXEv3 SMU Governor driver reads this byte and only injects when it is non-zero. |
 | 1 | `Reserved` | Explicit padding so the layout is compiler-independent. |
 | 2 | `GovernorFreqVoltPoints[15]` | 15 × `SMU_SAFE_POINT` (6 bytes each); see below. |
+| 92 | `PackagePowerLimitW` | Raw package/socket power limit in watts. `0` uses the governor default (230 W). |
+| 94 | `GpuPowerLimitW` | Raw VDDCR_GFX voltage × current power limit in watts. `0` uses the governor default (250 W). |
 
 `SMU_SAFE_POINT` (6 bytes):
 
@@ -121,27 +123,27 @@ Defaults are written only when a variable does not exist yet (first boot / after
 | `MeiMeiDXEv3SmuUnlockVar` | `SmuUnlock = 0` |
 | `MeiMeiDXEv3SmuPatchVar` | `SmuReportingPatch = 0` |
 | `MeiMeiDXEv3CoreVar` | `CoreUnlock = CORE_UNLOCK_DISABLED`, all cores `0` |
-| `MeiMeiDXEv3SmuGovernorVar` | `SMUGovernorEnable = 0` (disabled), and the 15 points in the table below (the governor derives its Min/Max from the enabled points). |
+| `MeiMeiDXEv3SmuGovernorVar` | `SMUGovernorEnable = 0` (disabled), `PackagePowerLimitW = 230`, `GpuPowerLimitW = 250`, and the 15 points in the table below (the governor derives its Min/Max from the enabled points). |
 
 Default safe points (`Frequency` MHz / `Voltage` mV / `Enable`):
 
 | # | Freq | Volt | Enable |
 | --- | --- | --- | --- |
-| 1 | 400 | 700 | yes |
-| 2 | 1175 | 700 | yes |
-| 3 | 1400 | 750 | yes |
-| 4 | 1600 | 800 | yes |
-| 5 | 1700 | 850 | yes |
-| 6 | 1850 | 900 | yes |
-| 7 | 2000 | 950 | yes |
-| 8 | 2050 | 975 | no |
-| 9 | 2100 | 1000 | no |
-| 10 | 2125 | 1015 | no |
-| 11 | 2150 | 1025 | no |
-| 12 | 2200 | 1045 | no |
-| 13 | 2230 | 1075 | no |
-| 14 | 2300 | 1100 | no |
-| 15 | 2350 | 1125 | no |
+| 1 | 350 | 700 | no |
+| 2 | 500 | 700 | yes |
+| 3 | 1175 | 700 | yes |
+| 4 | 1400 | 750 | yes |
+| 5 | 1600 | 800 | yes |
+| 6 | 1700 | 850 | yes |
+| 7 | 1800 | 875 | yes |
+| 8 | 1850 | 900 | no |
+| 9 | 2000 | 950 | no |
+| 10 | 2050 | 975 | no |
+| 11 | 2100 | 1000 | no |
+| 12 | 2125 | 1015 | no |
+| 13 | 2150 | 1030 | no |
+| 14 | 2200 | 1050 | no |
+| 15 | 0 | 0 | no |
 
 The canonical definitions live in `BC250DXEv3MenuDriverPkg/BC250DXEv3MenuDriver/BC250DXEv3MenuDriver.h`:
 
@@ -187,6 +189,8 @@ typedef struct {
   UINT8           SMUGovernorEnable;   // offset 0
   UINT8           Reserved;            // padding
   SMU_SAFE_POINT  GovernorFreqVoltPoints[SMU_SAFE_POINT_COUNT];
+  UINT16          PackagePowerLimitW;  // offset 92, 0 = default
+  UINT16          GpuPowerLimitW;      // offset 94, 0 = default
 } SMU_GOVERNOR_CONFIG;
 ```
 
@@ -327,7 +331,7 @@ Alternatively, if you cannot use the structs, access the fields by raw byte offs
 - Each variable is non-volatile and persists across reboots; it is only created (and defaulted) if it does not exist when the menu driver first runs.
 - All five variables share one vendor GUID but differ by name, letting each feature's layout evolve without affecting the others.
 - The menu driver only stores the configuration — apply/decode the options in your own driver where appropriate.
-- All SMU governor options (enable, frequency window, and V(f) points) live in the single `MeiMeiDXEv3SmuGovernorVar`; the BC250-DXEv3 SMU Governor driver gates injection on its `SMUGovernorEnable` byte and can read the curve from the same record.
+- All SMU governor options (enable, frequency window, V(f) points, and package/GPU power limits) live in the single `MeiMeiDXEv3SmuGovernorVar`; the BC250-DXEv3 SMU Governor driver gates injection on its `SMUGovernorEnable` byte and can read the curve and limits from the same record.
 - The Individual Core Options submenu shows a live status block above the restore button. When the selected cores satisfy the CCX0/CCX1 rules (CCX0 must keep at least one core enabled, and CCX1 must have the same number of enabled cores as CCX0 or be empty), a "Valid Core Configuration" section is shown; otherwise an "Invalid Core Configuration" warning with the CCX requirements is shown. These are declarative `suppressif`-gated `subtitle`/`text` statements driven by `questionref()` sums over the Core0-Core7 checkboxes, so they update automatically as cores are toggled (no callback involved).
 - The submenu also has a "Restore Factory Core Mask" action button. It asks for confirmation and, on Yes, resets the currently selected Core0-Core7 toggles to the learned factory core mask (read through `gMeiMeiDXEv3CoreUnlockProtocolGuid` / `GetFactoryMask`, produced by the BC-250 DXEv3 Core Unlock driver). If that driver is absent, or the factory mask has not been learned yet, an informational popup is shown and nothing is reset.
 - Watch out for `EFI_BUFFER_TOO_SMALL` if a variable grows in the future; always pass `sizeof (STRUCT)` for `DataSize`.

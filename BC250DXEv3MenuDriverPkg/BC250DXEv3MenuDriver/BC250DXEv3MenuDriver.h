@@ -116,6 +116,8 @@ typedef struct {
   UINT8           SMUGovernorEnable;                              // offset 0
   UINT8           Reserved;                                       // padding
   SMU_SAFE_POINT  GovernorFreqVoltPoints[SMU_SAFE_POINT_COUNT];
+  UINT16          PackagePowerLimitW;                             // 0 = default
+  UINT16          GpuPowerLimitW;                                 // 0 = default
 } SMU_GOVERNOR_CONFIG;
 
 //

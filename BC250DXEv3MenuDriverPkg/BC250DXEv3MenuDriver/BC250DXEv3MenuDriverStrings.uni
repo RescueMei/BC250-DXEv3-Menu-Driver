@@ -92,6 +92,12 @@
 #string STR_SAFEPOINTS_TITLE             #language en-US "In-SMU Governor Options"
 #string STR_SAFEPOINTS_INTRO             #language en-US "Frequency/voltage safe points for the SMU governor. Enable the points to use; disabled points are ignored. The governor's Min/Max frequency is taken from the enabled points. Requires SMU Unlock."
 
+#string STR_POWER_LIMITS_INTRO          #language en-US "Power limits use raw SMU sensors, not the host metrics table. 0 uses the governor default."
+#string STR_PACKAGE_LIMIT_PROMPT         #language en-US "Package Power Limit (W)"
+#string STR_PACKAGE_LIMIT_HELP           #language en-US "Hard limit for raw socket/package power. 0 = governor default (230 W)."
+#string STR_GPU_LIMIT_PROMPT             #language en-US "GPU Power Limit (W)"
+#string STR_GPU_LIMIT_HELP               #language en-US "Hard limit for raw VDDCR_GFX voltage x current. 0 = governor default (250 W)."
+
 #string STR_SAFEPOINT_ENABLE_PROMPT      #language en-US "Enable"
 #string STR_SAFEPOINT_ENABLE_HELP        #language en-US "Use this safe point. Disabled points are ignored by the governor."
 

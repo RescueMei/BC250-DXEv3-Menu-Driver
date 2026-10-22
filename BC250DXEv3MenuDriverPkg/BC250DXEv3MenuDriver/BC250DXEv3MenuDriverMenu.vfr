@@ -310,6 +310,28 @@ formset
 
       text
         help = STRING_TOKEN(STR_EMPTY),
+        text = STRING_TOKEN(STR_POWER_LIMITS_INTRO);
+
+      numeric varid = MeiMeiDXEv3SmuGovernorVar.PackagePowerLimitW,
+        prompt  = STRING_TOKEN(STR_PACKAGE_LIMIT_PROMPT),
+        help    = STRING_TOKEN(STR_PACKAGE_LIMIT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 0,
+        maximum = 300,
+        step    = 5,
+      endnumeric;
+
+      numeric varid = MeiMeiDXEv3SmuGovernorVar.GpuPowerLimitW,
+        prompt  = STRING_TOKEN(STR_GPU_LIMIT_PROMPT),
+        help    = STRING_TOKEN(STR_GPU_LIMIT_HELP),
+        flags   = RESET_REQUIRED,
+        minimum = 0,
+        maximum = 250,
+        step    = 5,
+      endnumeric;
+
+      text
+        help = STRING_TOKEN(STR_EMPTY),
         text = STRING_TOKEN(STR_EMPTY);
 
     // Freq Volt 1
