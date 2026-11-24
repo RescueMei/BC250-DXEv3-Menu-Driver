@@ -16,6 +16,7 @@
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
   BC250DXEv3MenuDriverPkg/BC250DXEv3MenuDriverPkg.dec
+  MeiMeiDXEv3SharedPkg/MeiMeiDXEv3SharedPkg.dec
 
 [LibraryClasses]
   BaseLib
@@ -29,6 +30,7 @@
   UefiHiiServicesLib
   MemoryAllocationLib
   PrintLib
+  MeiMeiConfigLib
 
 [Protocols]
   gEfiHiiDatabaseProtocolGuid
@@ -37,6 +39,7 @@
   gEfiDevicePathProtocolGuid
   gEfiGraphicsOutputProtocolGuid
   gMeiMeiDXEv3CoreUnlockProtocolGuid
+  gMeiMeiDXEv3CuUnlockProtocolGuid
 
 [Depex]
   gEfiHiiDatabaseProtocolGuid AND gEfiHiiConfigRoutingProtocolGuid
