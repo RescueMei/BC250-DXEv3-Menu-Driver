@@ -32,8 +32,7 @@ EFI_HII_HANDLE mHiiHandle;
 EFI_HII_CONFIG_ACCESS_PROTOCOL  mConfigAccess;
 EFI_HANDLE                      mDriverHandle;
 
-#define VARIABLE_ATTRIBUTES \
-  (EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE)
+#define VARIABLE_ATTRIBUTES  MEIMEIDXEV3_CONFIG_VAR_ATTRIBUTES
 
 //
 // Vendor device path for the handle that carries the config access protocol.
@@ -51,7 +50,7 @@ STATIC HII_VENDOR_DEVICE_PATH  mHiiVendorDevicePath = {
       { (UINT8)(sizeof (VENDOR_DEVICE_PATH)), (UINT8)((sizeof (VENDOR_DEVICE_PATH)) >> 8) }
     },
     // The config variable vendor GUID doubles as the device-path GUID.
-    { 0x49CC168D, 0xE8B0, 0x4613, { 0xA8, 0x07, 0x16, 0x96, 0x99, 0x86, 0x72, 0x6F } }
+    MEIMEIDXEV3_CONFIG_VAR_GUID
   },
   { END_DEVICE_PATH_TYPE, END_ENTIRE_DEVICE_PATH_SUBTYPE, { sizeof (EFI_DEVICE_PATH_PROTOCOL), 0 } }
 };
@@ -565,7 +564,7 @@ ResetToFactoryMask (VOID)
   // change) and keep the browser's copy of the varstore in sync.
   //
   Status = gRT->SetVariable (
-                  L"MeiMeiDXEv3CoreVar",
+                  MEIMEIDXEV3_CORE_VAR_NAME,
                   &gMeiMeiDXEv3ConfigVarGuid,
                   VARIABLE_ATTRIBUTES,
                   sizeof (CORE_CONFIG),
@@ -578,7 +577,7 @@ ResetToFactoryMask (VOID)
 
   HiiSetBrowserData (
     &gMeiMeiDXEv3ConfigVarGuid,
-    L"MeiMeiDXEv3CoreVar",
+    MEIMEIDXEV3_CORE_VAR_NAME,
     sizeof (CORE_CONFIG),
     (UINT8 *)&CoreConfig,
     NULL
@@ -648,7 +647,7 @@ ResetToFactoryCuMask (VOID)
   // Persist immediately and keep the browser's copy of the varstore in sync.
   //
   Status = gRT->SetVariable (
-                  L"MeiMeiDXEv3CuVar",
+                  MEIMEIDXEV3_CU_VAR_NAME,
                   &gMeiMeiDXEv3ConfigVarGuid,
                   VARIABLE_ATTRIBUTES,
                   sizeof (CU_CONFIG),
@@ -661,7 +660,7 @@ ResetToFactoryCuMask (VOID)
 
   HiiSetBrowserData (
     &gMeiMeiDXEv3ConfigVarGuid,
-    L"MeiMeiDXEv3CuVar",
+    MEIMEIDXEV3_CU_VAR_NAME,
     sizeof (CU_CONFIG),
     (UINT8 *)&CuConfig,
     NULL
@@ -821,7 +820,7 @@ ExtractConfig (
     //
     // No request: default to the core varstore.
     //
-    VarName    = L"MeiMeiDXEv3CoreVar";
+    VarName    = MEIMEIDXEV3_CORE_VAR_NAME;
     BufferSize = sizeof (CORE_CONFIG);
 
     ConfigHdr = HiiConstructConfigHdr (&gMeiMeiDXEv3ConfigVarGuid, VarName, mDriverHandle);
@@ -843,23 +842,23 @@ ExtractConfig (
     //
     // Match the request against the three varstores of this formset.
     //
-    if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3AcpiVar")) {
-      VarName    = L"MeiMeiDXEv3AcpiVar";
+    if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, MEIMEIDXEV3_ACPI_VAR_NAME)) {
+      VarName    = MEIMEIDXEV3_ACPI_VAR_NAME;
       BufferSize = sizeof (ACPI_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3SmuUnlockVar")) {
-      VarName    = L"MeiMeiDXEv3SmuUnlockVar";
+    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, MEIMEIDXEV3_SMU_UNLOCK_VAR_NAME)) {
+      VarName    = MEIMEIDXEV3_SMU_UNLOCK_VAR_NAME;
       BufferSize = sizeof (SMU_UNLOCK_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3SmuPatchVar")) {
-      VarName    = L"MeiMeiDXEv3SmuPatchVar";
+    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, MEIMEIDXEV3_SMU_PATCH_VAR_NAME)) {
+      VarName    = MEIMEIDXEV3_SMU_PATCH_VAR_NAME;
       BufferSize = sizeof (SMU_PATCH_CONFIG);
     } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, SMU_GOVERNOR_VAR_NAME)) {
       VarName    = SMU_GOVERNOR_VAR_NAME;
       BufferSize = sizeof (SMU_GOVERNOR_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3CuVar")) {
-      VarName    = L"MeiMeiDXEv3CuVar";
+    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, MEIMEIDXEV3_CU_VAR_NAME)) {
+      VarName    = MEIMEIDXEV3_CU_VAR_NAME;
       BufferSize = sizeof (CU_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3CoreVar")) {
-      VarName    = L"MeiMeiDXEv3CoreVar";
+    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, MEIMEIDXEV3_CORE_VAR_NAME)) {
+      VarName    = MEIMEIDXEV3_CORE_VAR_NAME;
       BufferSize = sizeof (CORE_CONFIG);
     } else {
       return EFI_NOT_FOUND;
@@ -946,23 +945,23 @@ RouteConfig (
 
   *Progress = Configuration;
 
-  if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3AcpiVar")) {
-    VarName    = L"MeiMeiDXEv3AcpiVar";
+  if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, MEIMEIDXEV3_ACPI_VAR_NAME)) {
+    VarName    = MEIMEIDXEV3_ACPI_VAR_NAME;
     BufferSize = sizeof (ACPI_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3SmuUnlockVar")) {
-    VarName    = L"MeiMeiDXEv3SmuUnlockVar";
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, MEIMEIDXEV3_SMU_UNLOCK_VAR_NAME)) {
+    VarName    = MEIMEIDXEV3_SMU_UNLOCK_VAR_NAME;
     BufferSize = sizeof (SMU_UNLOCK_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3SmuPatchVar")) {
-    VarName    = L"MeiMeiDXEv3SmuPatchVar";
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, MEIMEIDXEV3_SMU_PATCH_VAR_NAME)) {
+    VarName    = MEIMEIDXEV3_SMU_PATCH_VAR_NAME;
     BufferSize = sizeof (SMU_PATCH_CONFIG);
   } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, SMU_GOVERNOR_VAR_NAME)) {
     VarName    = SMU_GOVERNOR_VAR_NAME;
     BufferSize = sizeof (SMU_GOVERNOR_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3CuVar")) {
-    VarName    = L"MeiMeiDXEv3CuVar";
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, MEIMEIDXEV3_CU_VAR_NAME)) {
+    VarName    = MEIMEIDXEV3_CU_VAR_NAME;
     BufferSize = sizeof (CU_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3CoreVar")) {
-    VarName    = L"MeiMeiDXEv3CoreVar";
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, MEIMEIDXEV3_CORE_VAR_NAME)) {
+    VarName    = MEIMEIDXEV3_CORE_VAR_NAME;
     BufferSize = sizeof (CORE_CONFIG);
   } else {
     return EFI_NOT_FOUND;
@@ -1044,21 +1043,21 @@ Bc250DxeV3MenuDriverEntryPoint (
 
   // Initialize the ACPI configuration variable if it does not exist
   AcpiConfig.AcpiPatch = 0;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3AcpiVar", &gMeiMeiDXEv3ConfigVarGuid, &AcpiConfig, sizeof (ACPI_CONFIG));
+  Status = InitVariableIfMissing (MEIMEIDXEV3_ACPI_VAR_NAME, &gMeiMeiDXEv3ConfigVarGuid, &AcpiConfig, sizeof (ACPI_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
 
   // Initialize the SMU unlock configuration variable if it does not exist
   SmuUnlockConfig.SmuUnlock = 0;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3SmuUnlockVar", &gMeiMeiDXEv3ConfigVarGuid, &SmuUnlockConfig, sizeof (SMU_UNLOCK_CONFIG));
+  Status = InitVariableIfMissing (MEIMEIDXEV3_SMU_UNLOCK_VAR_NAME, &gMeiMeiDXEv3ConfigVarGuid, &SmuUnlockConfig, sizeof (SMU_UNLOCK_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
 
   // Initialize the SMU patch configuration variable if it does not exist
   SmuPatchConfig.SmuReportingPatch = 0;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3SmuPatchVar", &gMeiMeiDXEv3ConfigVarGuid, &SmuPatchConfig, sizeof (SMU_PATCH_CONFIG));
+  Status = InitVariableIfMissing (MEIMEIDXEV3_SMU_PATCH_VAR_NAME, &gMeiMeiDXEv3ConfigVarGuid, &SmuPatchConfig, sizeof (SMU_PATCH_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
@@ -1073,7 +1072,7 @@ Bc250DxeV3MenuDriverEntryPoint (
   CoreConfig.Core5 = 0;
   CoreConfig.Core6 = 0;
   CoreConfig.Core7 = 0;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3CoreVar", &gMeiMeiDXEv3ConfigVarGuid, &CoreConfig, sizeof (CORE_CONFIG));
+  Status = InitVariableIfMissing (MEIMEIDXEV3_CORE_VAR_NAME, &gMeiMeiDXEv3ConfigVarGuid, &CoreConfig, sizeof (CORE_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
@@ -1096,7 +1095,7 @@ Bc250DxeV3MenuDriverEntryPoint (
   ZeroMem (&CuConfig, sizeof (CU_CONFIG));
   CuConfig.Version = CU_CONFIG_SCHEMA;
   CuConfig.Mode    = CU_UNLOCK_FACTORY;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3CuVar", &gMeiMeiDXEv3ConfigVarGuid, &CuConfig, sizeof (CU_CONFIG));
+  Status = InitVariableIfMissing (MEIMEIDXEV3_CU_VAR_NAME, &gMeiMeiDXEv3ConfigVarGuid, &CuConfig, sizeof (CU_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
