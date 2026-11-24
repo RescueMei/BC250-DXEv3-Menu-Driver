@@ -10,6 +10,7 @@
 
 [Packages]
   MdePkg/MdePkg.dec
+  MeiMeiDXEv3SharedPkg/MeiMeiDXEv3SharedPkg.dec
 
 [LibraryClasses]
   BaseLib|MdePkg/Library/BaseLib/BaseLib.inf
@@ -35,6 +36,7 @@
   HiiLib|MdeModulePkg/Library/UefiHiiLib/UefiHiiLib.inf
   UefiHiiServicesLib|MdeModulePkg/Library/UefiHiiServicesLib/UefiHiiServicesLib.inf
   SafeIntLib|MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
+  MeiMeiConfigLib|MeiMeiDXEv3SharedPkg/Library/MeiMeiConfigLib/MeiMeiConfigLib.inf
 
 [Components]
   BC250DXEv3MenuDriverPkg/BC250DXEv3MenuDriver/BC250DXEv3MenuDriver.inf

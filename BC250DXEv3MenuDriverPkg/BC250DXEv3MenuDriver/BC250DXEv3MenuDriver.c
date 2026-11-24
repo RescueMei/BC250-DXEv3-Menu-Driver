@@ -9,6 +9,7 @@
 #include <Library/MemoryAllocationLib.h>
 #include <Library/PrintLib.h>
 #include <Library/BaseMemoryLib.h>
+#include <Library/MeiMeiConfigLib.h>
 #include <Protocol/DevicePath.h>
 #include <Protocol/GraphicsOutput.h>
 #include <Protocol/HiiConfigAccess.h>
@@ -20,7 +21,7 @@
 extern UINT8 BC250DXEv3MenuDriverMenuBin[];
 extern UINT8 MeiMeiDXEv3_Menu_DriverStrings[];
 
-EFI_GUID gMenuConfigGuid = { 0x49CC168D, 0xE8B0, 0x4613, { 0xA8, 0x07, 0x16, 0x96, 0x99, 0x86, 0x72, 0x6F } };
+EFI_GUID gMeiMeiDXEv3ConfigVarGuid = MEIMEIDXEV3_CONFIG_VAR_GUID;
 EFI_HII_HANDLE mHiiHandle;
 
 //
@@ -55,28 +56,6 @@ STATIC HII_VENDOR_DEVICE_PATH  mHiiVendorDevicePath = {
   { END_DEVICE_PATH_TYPE, END_ENTIRE_DEVICE_PATH_SUBTYPE, { sizeof (EFI_DEVICE_PATH_PROTOCOL), 0 } }
 };
 
-//
-// Default SMU governor safe-point curve (frequency MHz / voltage mV). Mirrors
-// the reference BC-250 safe-point span; the points through the 2000 MHz
-// default maximum are enabled, the higher (aggressive) points are disabled.
-//
-STATIC CONST SMU_SAFE_POINT  mDefaultSmuSafePoints[SMU_SAFE_POINT_COUNT] = {
-  { 0, 0,  350,  700 },   // below the default window: present, disabled
-  { 1, 0,  500,  700 },
-  { 1, 0, 1175,  700 },
-  { 1, 0, 1400,  750 },
-  { 1, 0, 1600,  800 },
-  { 1, 0, 1700,  850 },
-  { 1, 0, 1800,  875 },
-  { 0, 0, 1850,  900 },   // above the default window: present, disabled
-  { 0, 0, 2000,  950 },
-  { 0, 0, 2050,  975 },
-  { 0, 0, 2100, 1000 },
-  { 0, 0, 2125, 1015 },
-  { 0, 0, 2150, 1030 },
-  { 0, 0, 2200, 1050 },
-  { 0, 0,    0,    0 },   // spare
-};
 
 
 //
@@ -587,7 +566,7 @@ ResetToFactoryMask (VOID)
   //
   Status = gRT->SetVariable (
                   L"MeiMeiDXEv3CoreVar",
-                  &gMenuConfigGuid,
+                  &gMeiMeiDXEv3ConfigVarGuid,
                   VARIABLE_ATTRIBUTES,
                   sizeof (CORE_CONFIG),
                   &CoreConfig
@@ -598,7 +577,7 @@ ResetToFactoryMask (VOID)
   }
 
   HiiSetBrowserData (
-    &gMenuConfigGuid,
+    &gMeiMeiDXEv3ConfigVarGuid,
     L"MeiMeiDXEv3CoreVar",
     sizeof (CORE_CONFIG),
     (UINT8 *)&CoreConfig,
@@ -670,7 +649,7 @@ ResetToFactoryCuMask (VOID)
   //
   Status = gRT->SetVariable (
                   L"MeiMeiDXEv3CuVar",
-                  &gMenuConfigGuid,
+                  &gMeiMeiDXEv3ConfigVarGuid,
                   VARIABLE_ATTRIBUTES,
                   sizeof (CU_CONFIG),
                   &CuConfig
@@ -681,7 +660,7 @@ ResetToFactoryCuMask (VOID)
   }
 
   HiiSetBrowserData (
-    &gMenuConfigGuid,
+    &gMeiMeiDXEv3ConfigVarGuid,
     L"MeiMeiDXEv3CuVar",
     sizeof (CU_CONFIG),
     (UINT8 *)&CuConfig,
@@ -845,7 +824,7 @@ ExtractConfig (
     VarName    = L"MeiMeiDXEv3CoreVar";
     BufferSize = sizeof (CORE_CONFIG);
 
-    ConfigHdr = HiiConstructConfigHdr (&gMenuConfigGuid, VarName, mDriverHandle);
+    ConfigHdr = HiiConstructConfigHdr (&gMeiMeiDXEv3ConfigVarGuid, VarName, mDriverHandle);
     if (ConfigHdr == NULL) {
       return EFI_OUT_OF_RESOURCES;
     }
@@ -864,22 +843,22 @@ ExtractConfig (
     //
     // Match the request against the three varstores of this formset.
     //
-    if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3AcpiVar")) {
+    if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3AcpiVar")) {
       VarName    = L"MeiMeiDXEv3AcpiVar";
       BufferSize = sizeof (ACPI_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3SmuUnlockVar")) {
+    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3SmuUnlockVar")) {
       VarName    = L"MeiMeiDXEv3SmuUnlockVar";
       BufferSize = sizeof (SMU_UNLOCK_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3SmuPatchVar")) {
+    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3SmuPatchVar")) {
       VarName    = L"MeiMeiDXEv3SmuPatchVar";
       BufferSize = sizeof (SMU_PATCH_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, SMU_GOVERNOR_VAR_NAME)) {
+    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, SMU_GOVERNOR_VAR_NAME)) {
       VarName    = SMU_GOVERNOR_VAR_NAME;
       BufferSize = sizeof (SMU_GOVERNOR_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3CuVar")) {
+    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3CuVar")) {
       VarName    = L"MeiMeiDXEv3CuVar";
       BufferSize = sizeof (CU_CONFIG);
-    } else if (HiiIsConfigHdrMatch (Request, &gMenuConfigGuid, L"MeiMeiDXEv3CoreVar")) {
+    } else if (HiiIsConfigHdrMatch (Request, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3CoreVar")) {
       VarName    = L"MeiMeiDXEv3CoreVar";
       BufferSize = sizeof (CORE_CONFIG);
     } else {
@@ -905,7 +884,7 @@ ExtractConfig (
   }
 
   Size = BufferSize;
-  Status = gRT->GetVariable (VarName, &gMenuConfigGuid, NULL, &Size, Buffer);
+  Status = gRT->GetVariable (VarName, &gMeiMeiDXEv3ConfigVarGuid, NULL, &Size, Buffer);
   if (EFI_ERROR (Status)) {
     //
     // Absent or unexpected size: reply with the defaults (zeros).
@@ -967,22 +946,22 @@ RouteConfig (
 
   *Progress = Configuration;
 
-  if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3AcpiVar")) {
+  if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3AcpiVar")) {
     VarName    = L"MeiMeiDXEv3AcpiVar";
     BufferSize = sizeof (ACPI_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3SmuUnlockVar")) {
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3SmuUnlockVar")) {
     VarName    = L"MeiMeiDXEv3SmuUnlockVar";
     BufferSize = sizeof (SMU_UNLOCK_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3SmuPatchVar")) {
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3SmuPatchVar")) {
     VarName    = L"MeiMeiDXEv3SmuPatchVar";
     BufferSize = sizeof (SMU_PATCH_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, SMU_GOVERNOR_VAR_NAME)) {
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, SMU_GOVERNOR_VAR_NAME)) {
     VarName    = SMU_GOVERNOR_VAR_NAME;
     BufferSize = sizeof (SMU_GOVERNOR_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3CuVar")) {
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3CuVar")) {
     VarName    = L"MeiMeiDXEv3CuVar";
     BufferSize = sizeof (CU_CONFIG);
-  } else if (HiiIsConfigHdrMatch (Configuration, &gMenuConfigGuid, L"MeiMeiDXEv3CoreVar")) {
+  } else if (HiiIsConfigHdrMatch (Configuration, &gMeiMeiDXEv3ConfigVarGuid, L"MeiMeiDXEv3CoreVar")) {
     VarName    = L"MeiMeiDXEv3CoreVar";
     BufferSize = sizeof (CORE_CONFIG);
   } else {
@@ -1002,7 +981,7 @@ RouteConfig (
   // Pre-fill from the variable so partial configs update in place.
   //
   Size = BufferSize;
-  Status = gRT->GetVariable (VarName, &gMenuConfigGuid, NULL, &Size, Buffer);
+  Status = gRT->GetVariable (VarName, &gMeiMeiDXEv3ConfigVarGuid, NULL, &Size, Buffer);
   if (EFI_ERROR (Status)) {
     ZeroMem (Buffer, BufferSize);
   }
@@ -1022,7 +1001,7 @@ RouteConfig (
 
   Status = gRT->SetVariable (
                   VarName,
-                  &gMenuConfigGuid,
+                  &gMeiMeiDXEv3ConfigVarGuid,
                   VARIABLE_ATTRIBUTES,
                   BlockSize,
                   Buffer
@@ -1035,7 +1014,7 @@ RouteConfig (
   //
   // Keep the browser's uncommitted state in sync.
   //
-  HiiSetBrowserData (&gMenuConfigGuid, VarName, BlockSize, Buffer, NULL);
+  HiiSetBrowserData (&gMeiMeiDXEv3ConfigVarGuid, VarName, BlockSize, Buffer, NULL);
 
   FreePool (Buffer);
   return EFI_SUCCESS;
@@ -1065,21 +1044,21 @@ Bc250DxeV3MenuDriverEntryPoint (
 
   // Initialize the ACPI configuration variable if it does not exist
   AcpiConfig.AcpiPatch = 0;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3AcpiVar", &gMenuConfigGuid, &AcpiConfig, sizeof (ACPI_CONFIG));
+  Status = InitVariableIfMissing (L"MeiMeiDXEv3AcpiVar", &gMeiMeiDXEv3ConfigVarGuid, &AcpiConfig, sizeof (ACPI_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
 
   // Initialize the SMU unlock configuration variable if it does not exist
   SmuUnlockConfig.SmuUnlock = 0;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3SmuUnlockVar", &gMenuConfigGuid, &SmuUnlockConfig, sizeof (SMU_UNLOCK_CONFIG));
+  Status = InitVariableIfMissing (L"MeiMeiDXEv3SmuUnlockVar", &gMeiMeiDXEv3ConfigVarGuid, &SmuUnlockConfig, sizeof (SMU_UNLOCK_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
 
   // Initialize the SMU patch configuration variable if it does not exist
   SmuPatchConfig.SmuReportingPatch = 0;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3SmuPatchVar", &gMenuConfigGuid, &SmuPatchConfig, sizeof (SMU_PATCH_CONFIG));
+  Status = InitVariableIfMissing (L"MeiMeiDXEv3SmuPatchVar", &gMeiMeiDXEv3ConfigVarGuid, &SmuPatchConfig, sizeof (SMU_PATCH_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
@@ -1094,7 +1073,7 @@ Bc250DxeV3MenuDriverEntryPoint (
   CoreConfig.Core5 = 0;
   CoreConfig.Core6 = 0;
   CoreConfig.Core7 = 0;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3CoreVar", &gMenuConfigGuid, &CoreConfig, sizeof (CORE_CONFIG));
+  Status = InitVariableIfMissing (L"MeiMeiDXEv3CoreVar", &gMeiMeiDXEv3ConfigVarGuid, &CoreConfig, sizeof (CORE_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
@@ -1106,9 +1085,9 @@ Bc250DxeV3MenuDriverEntryPoint (
   SmuGovernorConfig.PackagePowerLimitW = 250;
   SmuGovernorConfig.GpuPowerLimitW = 200;
   for (Index = 0; Index < SMU_SAFE_POINT_COUNT; Index++) {
-    SmuGovernorConfig.GovernorFreqVoltPoints[Index] = mDefaultSmuSafePoints[Index];
+    SmuGovernorConfig.GovernorFreqVoltPoints[Index] = mMeiMeiDefaultSafePoints[Index];
   }
-  Status = InitVariableIfMissing (SMU_GOVERNOR_VAR_NAME, &gMenuConfigGuid, &SmuGovernorConfig, sizeof (SMU_GOVERNOR_CONFIG));
+  Status = InitVariableIfMissing (SMU_GOVERNOR_VAR_NAME, &gMeiMeiDXEv3ConfigVarGuid, &SmuGovernorConfig, sizeof (SMU_GOVERNOR_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
@@ -1117,7 +1096,7 @@ Bc250DxeV3MenuDriverEntryPoint (
   ZeroMem (&CuConfig, sizeof (CU_CONFIG));
   CuConfig.Version = CU_CONFIG_SCHEMA;
   CuConfig.Mode    = CU_UNLOCK_FACTORY;
-  Status = InitVariableIfMissing (L"MeiMeiDXEv3CuVar", &gMenuConfigGuid, &CuConfig, sizeof (CU_CONFIG));
+  Status = InitVariableIfMissing (L"MeiMeiDXEv3CuVar", &gMeiMeiDXEv3ConfigVarGuid, &CuConfig, sizeof (CU_CONFIG));
   if (EFI_ERROR (Status) && (Status != EFI_BUFFER_TOO_SMALL)) {
     return Status;
   }
