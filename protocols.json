@@ -1,0 +1,18 @@
+{
+  "protocols": [
+    {
+      "provider": "BC250-DXEv3-Core-Unlock/BC250DXEv3SMUCoreUnlockPkg/Include/MeiMeiDXEv3CoreUnlockProtocol.h",
+      "provider_sha256": "1708b327fe25f3be039d46b19a6a3622b67f76c05dd2335e69186d40630b06a1",
+      "consumers": [
+        "BC250DXEv3MenuDriverPkg/Include/MeiMeiDXEv3CoreUnlockProtocol.h"
+      ]
+    },
+    {
+      "provider": "BC250-DXEv3-CU-Unlock/BC250DXEv3SMUCuUnlockPkg/Include/MeiMeiDXEv3CuUnlockProtocol.h",
+      "provider_sha256": "7427c4256419dd40c812d7446a22f951f1f0c63fd2c1542033abbd490b62f2e6",
+      "consumers": [
+        "BC250DXEv3MenuDriverPkg/Include/MeiMeiDXEv3CuUnlockProtocol.h"
+      ]
+    }
+  ]
+}
