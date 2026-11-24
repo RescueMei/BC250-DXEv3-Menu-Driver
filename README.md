@@ -14,7 +14,6 @@ variables and act on them.
 | Produces | `EFI_HII_CONFIG_ACCESS_PROTOCOL` plus the formset |
 | Consumes | Core/CU factory-mask protocols for the restore actions |
 | Configuration | six variables, shared vendor GUID |
-| SMU SRAM | none |
 | Compliance | [COMPLIANCE.md](COMPLIANCE.md) |
 
 ## Dependencies
@@ -156,11 +155,6 @@ if (Status == EFI_NOT_FOUND) {
 Produces `EFI_HII_CONFIG_ACCESS_PROTOCOL` on the driver handle plus the
 `MeiMeiDXEv3 Menu` formset. It consumes the Core and CU factory-mask protocols
 for the restore actions; both are optional and looked up at runtime.
-
-## SMU SRAM placement
-
-None. The menu only stores configuration. See
-[SMU_MEMORY_MAP.md](https://github.com/RescueMei/BC250-DXEv3-Shared/blob/main/docs/SMU_MEMORY_MAP.md).
 
 ## Build
 
