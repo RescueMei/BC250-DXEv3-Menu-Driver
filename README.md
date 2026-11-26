@@ -176,7 +176,7 @@ Output:
 
 ## Validation
 
-2026-11-24, eight-driver stack: the menu driver was present in the validated
+2026-11-25, nine-driver stack: the menu driver was present in the validated
 build, the shared ABI and VFR-mirror checks passed at build time, and the
 integrated 2100 MHz run completed with `DEPLOY_OK` and a reachable board. See
 [COMPLIANCE.md](COMPLIANCE.md).
