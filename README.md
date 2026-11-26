@@ -152,6 +152,8 @@ if (Status == EFI_NOT_FOUND) {
 
 ## Protocols
 
+Also publishes `gMeiMeiDXEv3DriverInfoProtocolGuid` with its name, version, module GUID, config schema, and payload version for the `BC250-DXEv3-Driver-Info` telemetry driver.
+
 Produces `EFI_HII_CONFIG_ACCESS_PROTOCOL` on the driver handle plus the
 `MeiMeiDXEv3 Menu` formset. It consumes the Core and CU factory-mask protocols
 for the restore actions; both are optional and looked up at runtime.

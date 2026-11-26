@@ -33,6 +33,7 @@
   MeiMeiConfigLib
 
 [Protocols]
+  gMeiMeiDXEv3DriverInfoProtocolGuid
   gEfiHiiDatabaseProtocolGuid
   gEfiHiiConfigRoutingProtocolGuid
   gEfiHiiConfigAccessProtocolGuid
